@@ -32,7 +32,7 @@ declare global {
 
 @customModule
 @customElements('i-scom-area-chart')
-export default class ScomAreaChart extends Module implements PageBlock {
+export default class ScomAreaChart extends Module {
   private chartContainer: VStack;
   private vStackInfo: HStack;
   private pnlChart: Panel;
@@ -61,22 +61,27 @@ export default class ScomAreaChart extends Module implements PageBlock {
     super(parent, options);
   }
 
-  getData() {
+  private getData() {
     return this._data;
   }
 
-  async setData(data: IAreaChartConfig) {
+  private async setData(data: IAreaChartConfig) {
     this._oldData = this._data;
     this._data = data;
     this.updateChartData();
   }
 
-  getTag() {
+  private getTag() {
     return this.tag;
   }
 
-  async setTag(value: any) {
-    this.tag = value || {};
+  private async setTag(value: any) {
+    const newValue = value || {};
+    for (let prop in newValue) {
+      if (newValue.hasOwnProperty(prop)) {
+        this.tag[prop] = newValue[prop];
+      }
+    }
     this.width = this.tag.width || 700;
     this.height = this.tag.height || 500;
     this.onUpdateBlock();
@@ -86,25 +91,25 @@ export default class ScomAreaChart extends Module implements PageBlock {
     return this.getThemeSchema();
   }
 
-  onConfigSave(config: any) {
-    this.tag = config;
-    this.onUpdateBlock();
-  }
+  // onConfigSave(config: any) {
+  //   this.tag = config;
+  //   this.onUpdateBlock();
+  // }
 
-  async edit() {
-    // this.chartContainer.visible = false
-  }
+  // async edit() {
+  //   // this.chartContainer.visible = false
+  // }
 
-  async confirm() {
-    this.onUpdateBlock();
-    // this.chartContainer.visible = true
-  }
+  // async confirm() {
+  //   this.onUpdateBlock();
+  //   // this.chartContainer.visible = true
+  // }
 
-  async discard() {
-    // this.chartContainer.visible = true
-  }
+  // async discard() {
+  //   // this.chartContainer.visible = true
+  // }
 
-  async config() { }
+  // async config() { }
 
   private getPropertiesSchema(readOnly?: boolean) {
     const propertiesSchema = {
@@ -272,15 +277,7 @@ export default class ScomAreaChart extends Module implements PageBlock {
     return themeSchema as IDataSchema;
   }
 
-  getEmbedderActions() {
-    return this._getActions(this.getPropertiesSchema(true), this.getThemeSchema(true));
-  }
-
-  getActions() {
-    return this._getActions(this.getPropertiesSchema(), this.getThemeSchema());
-  }
-
-  _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
         name: 'Settings',
@@ -338,7 +335,7 @@ export default class ScomAreaChart extends Module implements PageBlock {
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = { ...this.tag };
+              this.oldTag = JSON.parse(JSON.stringify(this.tag));
               this.setTag(userInputData);
               if (builder) builder.setTag(userInputData);
             },
@@ -354,6 +351,33 @@ export default class ScomAreaChart extends Module implements PageBlock {
       }
     ]
     return actions
+  }
+
+  getConfigurators() {
+    return [
+      {
+        name: 'Builder Configurator',
+        target: 'Builders',
+        getActions: () => {
+          return this._getActions(this.getPropertiesSchema(), this.getThemeSchema());
+        },
+        getData: this.getData.bind(this),
+        setData: this.setData.bind(this),
+        getTag: this.getTag.bind(this),
+        setTag: this.setTag.bind(this)
+      },
+      {
+        name: 'Emdedder Configurator',
+        target: 'Embedders',
+        getActions: () => {
+          return this._getActions(this.getPropertiesSchema(true), this.getThemeSchema(true))
+        },
+        getData: this.getData.bind(this),
+        setData: this.setData.bind(this),
+        getTag: this.getTag.bind(this),
+        setTag: this.setTag.bind(this)
+      }
+    ]
   }
 
   private updateStyle(name: string, value: any) {
