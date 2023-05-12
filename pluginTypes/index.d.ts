@@ -104,6 +104,40 @@ declare module "@scom/scom-area-chart/assets.ts" {
     };
     export default _default;
 }
+/// <amd-module name="@scom/scom-area-chart/data.json.ts" />
+declare module "@scom/scom-area-chart/data.json.ts" {
+    const _default_1: {
+        defaultBuilderData: {
+            apiEndpoint: string;
+            options: {
+                title: string;
+                options: {
+                    xColumn: {
+                        key: string;
+                        type: string;
+                    };
+                    yColumns: string[];
+                    stacking: boolean;
+                    groupBy: string;
+                    seriesOptions: {
+                        key: string;
+                        color: string;
+                    }[];
+                    xAxis: {
+                        title: string;
+                        tickFormat: string;
+                    };
+                    yAxis: {
+                        title: string;
+                        labelFormat: string;
+                        position: string;
+                    };
+                };
+            };
+        };
+    };
+    export default _default_1;
+}
 /// <amd-module name="@scom/scom-area-chart" />
 declare module "@scom/scom-area-chart" {
     import { Module, ControlElement, Container, IDataSchema } from '@ijstech/components';
@@ -127,9 +161,7 @@ declare module "@scom/scom-area-chart" {
         private lbDescription;
         private chartData;
         private apiEndpoint;
-        private _oldData;
         private _data;
-        private oldTag;
         tag: any;
         defaultEdit: boolean;
         readonly onConfirm: () => Promise<void>;
