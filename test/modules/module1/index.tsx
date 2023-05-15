@@ -16,7 +16,7 @@ export default class Module1 extends Module {
             <i-scom-area-chart
                 margin={{ left: 'auto', right: 'auto' }}
                 data={{
-                    apiEndpoint: 'https://api.dune.com/api/v1/query/2030745/results?api_key=324WhvsCHWCji2pkgtfa0JDqDu8j0FdD',
+                    apiEndpoint: "/dune/query/2030745",
                     options: {
                         title: 'ETH Staked - Cumulative',
                         options: {
