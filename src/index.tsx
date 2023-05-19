@@ -389,7 +389,7 @@ export default class ScomAreaChart extends Module {
             const newData = JSON.parse(decodedString);
             let resultingData = {
               ...self._data,
-              newData
+              ...newData
             };
             await this.setData(resultingData);
           }
