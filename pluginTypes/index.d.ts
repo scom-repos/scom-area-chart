@@ -1,45 +1,43 @@
 /// <amd-module name="@scom/scom-area-chart/global/interfaces.ts" />
 declare module "@scom/scom-area-chart/global/interfaces.ts" {
     export interface IAreaChartOptions {
-        title: string;
-        description?: string;
-        options: {
-            xColumn: {
-                key: string;
-                type: 'time' | 'category';
-            };
-            yColumns: string[];
-            groupBy?: string;
-            seriesOptions?: {
-                key: string;
-                title?: string;
-                color?: string;
-            }[];
-            stacking?: boolean;
-            xAxis?: {
-                title?: string;
-                tickFormat?: string;
-                reverseValues?: boolean;
-            };
-            yAxis?: {
-                title?: string;
-                tickFormat?: string;
-                labelFormat?: string;
-                position?: 'left' | 'right';
-            };
-            smooth?: boolean;
-            legend?: {
-                show?: boolean;
-                scroll?: boolean;
-                position?: 'top' | 'bottom' | 'left' | 'right';
-            };
-            showSymbol?: boolean;
-            showDataLabels?: boolean;
-            percentage?: boolean;
+        xColumn?: {
+            key: string;
+            type: 'time' | 'category';
         };
+        yColumns?: string[];
+        groupBy?: string;
+        seriesOptions?: {
+            key: string;
+            title?: string;
+            color?: string;
+        }[];
+        stacking?: boolean;
+        xAxis?: {
+            title?: string;
+            tickFormat?: string;
+            reverseValues?: boolean;
+        };
+        yAxis?: {
+            title?: string;
+            tickFormat?: string;
+            labelFormat?: string;
+            position?: 'left' | 'right';
+        };
+        smooth?: boolean;
+        legend?: {
+            show?: boolean;
+            scroll?: boolean;
+            position?: 'top' | 'bottom' | 'left' | 'right';
+        };
+        showSymbol?: boolean;
+        showDataLabels?: boolean;
+        percentage?: boolean;
     }
     export interface IAreaChartConfig {
         apiEndpoint: string;
+        title: string;
+        description?: string;
         options: IAreaChartOptions;
     }
 }
@@ -109,29 +107,27 @@ declare module "@scom/scom-area-chart/data.json.ts" {
     const _default_1: {
         defaultBuilderData: {
             apiEndpoint: string;
+            title: string;
             options: {
-                title: string;
-                options: {
-                    xColumn: {
-                        key: string;
-                        type: string;
-                    };
-                    yColumns: string[];
-                    stacking: boolean;
-                    groupBy: string;
-                    seriesOptions: {
-                        key: string;
-                        color: string;
-                    }[];
-                    xAxis: {
-                        title: string;
-                        tickFormat: string;
-                    };
-                    yAxis: {
-                        title: string;
-                        labelFormat: string;
-                        position: string;
-                    };
+                xColumn: {
+                    key: string;
+                    type: string;
+                };
+                yColumns: string[];
+                stacking: boolean;
+                groupBy: string;
+                seriesOptions: {
+                    key: string;
+                    color: string;
+                }[];
+                xAxis: {
+                    title: string;
+                    tickFormat: string;
+                };
+                yAxis: {
+                    title: string;
+                    labelFormat: string;
+                    position: string;
                 };
             };
         };
@@ -173,8 +169,9 @@ declare module "@scom/scom-area-chart" {
         private setData;
         private getTag;
         private setTag;
-        getConfigSchema(): IDataSchema;
         private getPropertiesSchema;
+        private getGeneralSchema;
+        private getAdvanceSchema;
         private getThemeSchema;
         private _getActions;
         getConfigurators(): ({
@@ -224,7 +221,7 @@ declare module "@scom/scom-area-chart" {
                 userInputUISchema?: undefined;
             })[];
             getData: any;
-            setData: any;
+            setData: (data: IAreaChartConfig) => Promise<void>;
             getTag: any;
             setTag: any;
             getLinkParams?: undefined;
