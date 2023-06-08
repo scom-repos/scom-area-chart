@@ -219,7 +219,7 @@ export default class ScomAreaChart extends Module {
         options
       }
     }
-    return propertiesSchema as IDataSchema;
+    return propertiesSchema as any;
   }
 
   private getGeneralSchema() {
@@ -248,7 +248,7 @@ export default class ScomAreaChart extends Module {
         options
       }
     };
-    return propertiesSchema as IDataSchema;
+    return propertiesSchema as any;
   }
 
   private getThemeSchema() {
@@ -266,9 +266,9 @@ export default class ScomAreaChart extends Module {
           type: 'string',
           format: 'color'
         },
-        width: {
-          type: 'string'
-        },
+        // width: {
+        //   type: 'string'
+        // },
         height: {
           type: 'string'
         }
