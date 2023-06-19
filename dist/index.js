@@ -939,17 +939,20 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
         }
         async init() {
             this.isReadyCallbackQueued = true;
-            this.updateTheme();
             super.init();
-            this.classList.add(index_css_1.chartStyle);
+            this.updateTheme();
             const { width, height, darkShadow } = this.tag || {};
             this.width = width || 700;
             this.height = height || 500;
             this.maxWidth = '100%';
             this.chartContainer.style.boxShadow = darkShadow ? '0 -2px 10px rgba(0, 0, 0, 1)' : 'rgba(0, 0, 0, 0.16) 0px 1px 4px';
-            const data = this.getAttribute('data', true);
-            if (data) {
-                this.setData(data);
+            this.classList.add(index_css_1.chartStyle);
+            const lazyLoad = this.getAttribute('lazyLoad', true, false);
+            if (!lazyLoad) {
+                const data = this.getAttribute('data', true);
+                if (data) {
+                    this.setData(data);
+                }
             }
             this.isReadyCallbackQueued = false;
             this.executeReadyCallback();

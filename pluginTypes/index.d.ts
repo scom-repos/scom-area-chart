@@ -139,6 +139,7 @@ declare module "@scom/scom-area-chart" {
     import { Module, ControlElement, Container, IDataSchema } from '@ijstech/components';
     import { IAreaChartConfig } from "@scom/scom-area-chart/global/index.ts";
     interface ScomAreaChartElement extends ControlElement {
+        lazyLoad?: boolean;
         data: IAreaChartConfig;
     }
     global {
