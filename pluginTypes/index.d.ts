@@ -1,46 +1,50 @@
 /// <amd-module name="@scom/scom-area-chart/global/interfaces.ts" />
 declare module "@scom/scom-area-chart/global/interfaces.ts" {
+    import { ModeType } from "@scom/scom-chart-data-source-setup";
     export interface IAreaChartOptions {
-        title: string;
-        description?: string;
-        options: {
-            xColumn: {
-                key: string;
-                type: 'time' | 'category';
-            };
-            yColumns: string[];
-            groupBy?: string;
-            seriesOptions?: {
-                key: string;
-                title?: string;
-                color?: string;
-            }[];
-            stacking?: boolean;
-            xAxis?: {
-                title?: string;
-                tickFormat?: string;
-                reverseValues?: boolean;
-            };
-            yAxis?: {
-                title?: string;
-                tickFormat?: string;
-                labelFormat?: string;
-                position?: 'left' | 'right';
-            };
-            smooth?: boolean;
-            legend?: {
-                show?: boolean;
-                scroll?: boolean;
-                position?: 'top' | 'bottom' | 'left' | 'right';
-            };
-            showSymbol?: boolean;
-            showDataLabels?: boolean;
-            percentage?: boolean;
+        xColumn?: {
+            key: string;
+            type: 'time' | 'category';
         };
+        yColumns?: string[];
+        groupBy?: string;
+        seriesOptions?: {
+            key: string;
+            title?: string;
+            color?: string;
+        }[];
+        stacking?: boolean;
+        xAxis?: {
+            title?: string;
+            tickFormat?: string;
+            reverseValues?: boolean;
+        };
+        yAxis?: {
+            title?: string;
+            tickFormat?: string;
+            labelFormat?: string;
+            position?: 'left' | 'right';
+        };
+        smooth?: boolean;
+        legend?: {
+            show?: boolean;
+            scroll?: boolean;
+            position?: 'top' | 'bottom' | 'left' | 'right';
+        };
+        showSymbol?: boolean;
+        showDataLabels?: boolean;
+        percentage?: boolean;
     }
     export interface IAreaChartConfig {
-        apiEndpoint: string;
+        apiEndpoint?: string;
+        title: string;
+        description?: string;
         options: IAreaChartOptions;
+        file?: {
+            cid?: string;
+            name?: string;
+        };
+        mode: ModeType;
     }
 }
 /// <amd-module name="@scom/scom-area-chart/global/utils.ts" />
@@ -52,7 +56,7 @@ declare module "@scom/scom-area-chart/global/utils.ts" {
     }) => any;
     export const formatNumberByFormat: (num: number, format: string, separators?: boolean) => any;
     export const formatNumberWithSeparators: (value: number, precision?: number) => string;
-    export const groupArrayByKey: (arr: [Date | string, string | number][]) => any[];
+    export const groupArrayByKey: (arr: [Date | string, string | number][]) => (string | number | Date)[][];
     export const groupByCategory: (data: {
         [key: string]: any;
     }[], category: string, xAxis: string, yAxis: string) => {
@@ -104,11 +108,44 @@ declare module "@scom/scom-area-chart/assets.ts" {
     };
     export default _default;
 }
+/// <amd-module name="@scom/scom-area-chart/data.json.ts" />
+declare module "@scom/scom-area-chart/data.json.ts" {
+    const _default_1: {
+        defaultBuilderData: {
+            apiEndpoint: string;
+            title: string;
+            options: {
+                xColumn: {
+                    key: string;
+                    type: string;
+                };
+                yColumns: string[];
+                stacking: boolean;
+                groupBy: string;
+                seriesOptions: {
+                    key: string;
+                    color: string;
+                }[];
+                xAxis: {
+                    title: string;
+                    tickFormat: string;
+                };
+                yAxis: {
+                    title: string;
+                    labelFormat: string;
+                    position: string;
+                };
+            };
+        };
+    };
+    export default _default_1;
+}
 /// <amd-module name="@scom/scom-area-chart" />
 declare module "@scom/scom-area-chart" {
-    import { Module, ControlElement, Container, IDataSchema } from '@ijstech/components';
+    import { Module, ControlElement, Container, IDataSchema, VStack } from '@ijstech/components';
     import { IAreaChartConfig } from "@scom/scom-area-chart/global/index.ts";
     interface ScomAreaChartElement extends ControlElement {
+        lazyLoad?: boolean;
         data: IAreaChartConfig;
     }
     global {
@@ -127,9 +164,7 @@ declare module "@scom/scom-area-chart" {
         private lbDescription;
         private chartData;
         private apiEndpoint;
-        private _oldData;
         private _data;
-        private oldTag;
         tag: any;
         defaultEdit: boolean;
         readonly onConfirm: () => Promise<void>;
@@ -141,14 +176,28 @@ declare module "@scom/scom-area-chart" {
         private setData;
         private getTag;
         private setTag;
-        getConfigSchema(): IDataSchema;
         private getPropertiesSchema;
+        private getGeneralSchema;
+        private getAdvanceSchema;
         private getThemeSchema;
         private _getActions;
-        getConfigurators(): {
+        getConfigurators(): ({
             name: string;
             target: string;
             getActions: () => ({
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => Promise<void>;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                customUI: {
+                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
+                };
+                userInputDataSchema?: undefined;
+                userInputUISchema?: undefined;
+            } | {
                 name: string;
                 icon: string;
                 command: (builder: any, userInputData: any) => {
@@ -180,6 +229,7 @@ declare module "@scom/scom-area-chart" {
                         title?: undefined;
                     })[];
                 };
+                customUI?: undefined;
             } | {
                 name: string;
                 icon: string;
@@ -189,17 +239,91 @@ declare module "@scom/scom-area-chart" {
                     redo: () => void;
                 };
                 userInputDataSchema: IDataSchema;
+                customUI?: undefined;
                 userInputUISchema?: undefined;
             })[];
+            getData: any;
+            setData: (data: IAreaChartConfig) => Promise<void>;
+            getTag: any;
+            setTag: any;
+            getLinkParams?: undefined;
+            setLinkParams?: undefined;
+        } | {
+            name: string;
+            target: string;
+            getActions: () => ({
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => Promise<void>;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                customUI: {
+                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
+                };
+                userInputDataSchema?: undefined;
+                userInputUISchema?: undefined;
+            } | {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => Promise<void>;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                userInputDataSchema: IDataSchema;
+                userInputUISchema: {
+                    type: string;
+                    elements: ({
+                        type: string;
+                        scope: string;
+                        title: string;
+                        options?: undefined;
+                    } | {
+                        type: string;
+                        scope: string;
+                        title?: undefined;
+                        options?: undefined;
+                    } | {
+                        type: string;
+                        scope: string;
+                        options: {
+                            detail: {
+                                type: string;
+                            };
+                        };
+                        title?: undefined;
+                    })[];
+                };
+                customUI?: undefined;
+            } | {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => Promise<void>;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                userInputDataSchema: IDataSchema;
+                customUI?: undefined;
+                userInputUISchema?: undefined;
+            })[];
+            getLinkParams: () => {
+                data: string;
+            };
+            setLinkParams: (params: any) => Promise<void>;
             getData: any;
             setData: any;
             getTag: any;
             setTag: any;
-        }[];
+        })[];
         private updateStyle;
         private updateTheme;
         private onUpdateBlock;
         private updateChartData;
+        private renderSnapshotData;
+        private renderLiveData;
         private renderChart;
         private resizeChart;
         init(): Promise<void>;

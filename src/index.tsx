@@ -11,14 +11,133 @@ import {
   Styles,
   Panel,
   LineChart,
-  moment
+  moment,
+  Button
 } from '@ijstech/components';
-import { PageBlock, IAreaChartConfig, callAPI, formatNumber, groupByCategory, extractUniqueTimes, concatUnique, groupArrayByKey, formatNumberByFormat } from './global/index';
+import { IAreaChartConfig, callAPI, formatNumber, groupByCategory, extractUniqueTimes, concatUnique, groupArrayByKey, formatNumberByFormat, IAreaChartOptions } from './global/index';
 import { chartStyle, containerStyle } from './index.css';
 import assets from './assets';
+import configData from './data.json';
+import ScomChartDataSourceSetup, { ModeType, fetchContentByCID } from '@scom/scom-chart-data-source-setup';
 const Theme = Styles.Theme.ThemeVars;
 
+const options = {
+  type: 'object',
+  properties: {
+    xColumn: {
+      type: 'object',
+      title: 'X column',
+      required: true,
+      properties: {
+        key: {
+          type: 'string',
+          required: true
+        },
+        type: {
+          type: 'string',
+          enum: ['time', 'category'],
+          required: true
+        }
+      }
+    },
+    yColumns: {
+      type: 'array',
+      title: 'Y columns',
+      required: true,
+      items: {
+        type: 'string'
+      }
+    },
+    groupBy: {
+      type: 'string'
+    },
+    smooth: {
+      type: 'boolean'
+    },
+    stacking: {
+      type: 'boolean'
+    },
+    legend: {
+      type: 'object',
+      title: 'Show Chart Legend',
+      properties: {
+        show: {
+          type: 'boolean'
+        },
+        scroll: {
+          type: 'boolean'
+        },
+        position: {
+          type: 'string',
+          enum: ['top', 'bottom', 'left', 'right']
+        }
+      }
+    },
+    showSymbol: {
+      type: 'boolean'
+    },
+    showDataLabels: {
+      type: 'boolean'
+    },
+    percentage: {
+      type: 'boolean'
+    },
+    xAxis: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string'
+        },
+        tickFormat: {
+          type: 'string'
+        },
+        reverseValues: {
+          type: 'boolean'
+        }
+      }
+    },
+    yAxis: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string'
+        },
+        tickFormat: {
+          type: 'string'
+        },
+        labelFormat: {
+          type: 'string'
+        },
+        position: {
+          type: 'string',
+          enum: ['left', 'right']
+        }
+      }
+    },
+    seriesOptions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          key: {
+            type: 'string',
+            required: true
+          },
+          title: {
+            type: 'string'
+          },
+          color: {
+            type: 'string',
+            format: 'color'
+          }
+        }
+      }
+    }
+  }
+}
+
 interface ScomAreaChartElement extends ControlElement {
+  lazyLoad?: boolean;
   data: IAreaChartConfig
 }
 
@@ -42,9 +161,7 @@ export default class ScomAreaChart extends Module {
   private chartData: { [key: string]: string | number }[] = [];
   private apiEndpoint = '';
 
-  private _oldData: IAreaChartConfig = { apiEndpoint: '', options: undefined };
-  private _data: IAreaChartConfig = { apiEndpoint: '', options: undefined };
-  private oldTag: any = {};
+  private _data: IAreaChartConfig = { apiEndpoint: '', title: '', options: undefined, mode: ModeType.LIVE };
   tag: any = {};
   defaultEdit: boolean = true;
   readonly onConfirm: () => Promise<void>;
@@ -66,7 +183,6 @@ export default class ScomAreaChart extends Module {
   }
 
   private async setData(data: IAreaChartConfig) {
-    this._oldData = this._data;
     this._data = data;
     this.updateChartData();
   }
@@ -87,171 +203,58 @@ export default class ScomAreaChart extends Module {
     this.onUpdateBlock();
   }
 
-  getConfigSchema() {
-    return this.getThemeSchema();
-  }
-
-  // onConfigSave(config: any) {
-  //   this.tag = config;
-  //   this.onUpdateBlock();
-  // }
-
-  // async edit() {
-  //   // this.chartContainer.visible = false
-  // }
-
-  // async confirm() {
-  //   this.onUpdateBlock();
-  //   // this.chartContainer.visible = true
-  // }
-
-  // async discard() {
-  //   // this.chartContainer.visible = true
-  // }
-
-  // async config() { }
-
-  private getPropertiesSchema(readOnly?: boolean) {
+  private getPropertiesSchema() {
     const propertiesSchema = {
       type: 'object',
       properties: {
-        apiEndpoint: {
+        // apiEndpoint: {
+        //   type: 'string',
+        //   title: 'API Endpoint',
+        //   required: true
+        // },
+        title: {
           type: 'string',
-          title: 'API Endpoint',
           required: true
         },
-        options: {
-          type: 'object',
-          properties: {
-            title: {
-              type: 'string',
-              required: true
-            },
-            description: {
-              type: 'string'
-            },
-            options: {
-              type: 'object',
-              properties: {
-                xColumn: {
-                  type: 'object',
-                  title: 'X column',
-                  required: true,
-                  properties: {
-                    key: {
-                      type: 'string',
-                      required: true
-                    },
-                    type: {
-                      type: 'string',
-                      enum: ['time', 'category'],
-                      required: true
-                    }
-                  }
-                },
-                yColumns: {
-                  type: 'array',
-                  title: 'Y columns',
-                  required: true,
-                  items: {
-                    type: 'string'
-                  }
-                },
-                groupBy: {
-                  type: 'string'
-                },
-                smooth: {
-                  type: 'boolean'
-                },
-                stacking: {
-                  type: 'boolean'
-                },
-                legend: {
-                  type: 'object',
-                  title: 'Show Chart Legend',
-                  properties: {
-                    show: {
-                      type: 'boolean'
-                    },
-                    scroll: {
-                      type: 'boolean'
-                    },
-                    position: {
-                      type: 'string',
-                      enum: ['top', 'bottom', 'left', 'right']
-                    }
-                  }
-                },
-                showSymbol: {
-                  type: 'boolean'
-                },
-                showDataLabels: {
-                  type: 'boolean'
-                },
-                percentage: {
-                  type: 'boolean'
-                },
-                xAxis: {
-                  type: 'object',
-                  properties: {
-                    title: {
-                      type: 'string'
-                    },
-                    tickFormat: {
-                      type: 'string'
-                    },
-                    reverseValues: {
-                      type: 'boolean'
-                    }
-                  }
-                },
-                yAxis: {
-                  type: 'object',
-                  properties: {
-                    title: {
-                      type: 'string'
-                    },
-                    tickFormat: {
-                      type: 'string'
-                    },
-                    labelFormat: {
-                      type: 'string'
-                    },
-                    position: {
-                      type: 'string',
-                      enum: ['left', 'right']
-                    }
-                  }
-                },
-                seriesOptions: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      key: {
-                        type: 'string',
-                        required: true
-                      },
-                      title: {
-                        type: 'string'
-                      },
-                      color: {
-                        type: 'string',
-                        format: 'color'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+        description: {
+          type: 'string'
+        },
+        options
+      }
+    }
+    return propertiesSchema as any;
+  }
+
+  private getGeneralSchema() {
+    const propertiesSchema = {
+      type: 'object',
+      required: ['title'],
+      properties: {
+        // apiEndpoint: {
+        //   type: 'string'
+        // },
+        title: {
+          type: 'string'
+        },
+        description: {
+          type: 'string'
         }
       }
     }
     return propertiesSchema as IDataSchema;
   }
 
-  private getThemeSchema(readOnly?: boolean) {
+  private getAdvanceSchema() {
+    const propertiesSchema = {
+      type: 'object',
+      properties: {
+        options
+      }
+    };
+    return propertiesSchema as any;
+  }
+
+  private getThemeSchema() {
     const themeSchema = {
       type: 'object',
       properties: {
@@ -266,9 +269,9 @@ export default class ScomAreaChart extends Module {
           type: 'string',
           format: 'color'
         },
-        width: {
-          type: 'string'
-        },
+        // width: {
+        //   type: 'string'
+        // },
         height: {
           type: 'string'
         }
@@ -277,30 +280,92 @@ export default class ScomAreaChart extends Module {
     return themeSchema as IDataSchema;
   }
 
-  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema, advancedSchema?: IDataSchema) {
     const actions = [
+      {
+        name: 'Data Source',
+        icon: 'database',
+        command: (builder: any, userInputData: any) => {
+          let _oldData: IAreaChartConfig = { apiEndpoint: '', title: '', options: undefined,  mode: ModeType.LIVE };
+          return {
+            execute: async () => {
+              _oldData = { ...this._data };
+              if (userInputData?.mode) this._data.mode = userInputData?.mode;
+              if (userInputData?.file) this._data.file = userInputData?.file;
+              if (userInputData?.apiEndpoint) this._data.apiEndpoint = userInputData?.apiEndpoint;
+              if (builder?.setData) builder.setData(this._data);
+              this.setData(this._data);
+            },
+            undo: () => {
+              if (builder?.setData) builder.setData(_oldData);
+              this.setData(_oldData);
+            },
+            redo: () => { }
+          }
+        },
+        customUI: {
+          render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => {
+            const vstack = new VStack(null, {gap: '1rem'});
+            const config = new ScomChartDataSourceSetup(null, {...this._data, chartData: JSON.stringify(this.chartData)});
+            const hstack = new HStack(null, {
+              verticalAlignment: 'center',
+              horizontalAlignment: 'end'
+            });
+            const button = new Button(null, {
+              caption: 'Confirm',
+              width: 'auto',
+              height: 40,
+              font: {color: Theme.colors.primary.contrastText}
+            });
+            hstack.append(button);
+            vstack.append(config);
+            vstack.append(hstack);
+            button.onClick = async () => {
+              const { apiEndpoint, file, mode } = config.data;
+              if (mode === 'Live') {
+                if (!apiEndpoint) return;
+                this._data.apiEndpoint = apiEndpoint;
+                this.updateChartData();
+              } else {
+                if (!file?.cid) return;
+                this.chartData = config.data.chartData ? JSON.parse(config.data.chartData) : []
+                this.onUpdateBlock();
+              }
+              if (onConfirm) {
+                onConfirm(true, {...this._data, apiEndpoint, file, mode});
+              }
+            }
+            return vstack;
+          }
+        }
+      },
       {
         name: 'Settings',
         icon: 'cog',
         command: (builder: any, userInputData: any) => {
+          let _oldData: IAreaChartConfig = { apiEndpoint: '', title: '', options: undefined, mode: ModeType.LIVE  };
           return {
             execute: async () => {
-              if (builder?.setData) {
-                builder.setData(userInputData);
+              _oldData = { ...this._data };
+              if (userInputData) {
+                if (advancedSchema) {
+                  this._data = { ...this._data, ...userInputData };
+                } else {
+                  this._data = { ...userInputData };
+                }
               }
-              this.setData(userInputData);
+              if (builder?.setData) builder.setData(this._data);
+              this.setData(this._data);
             },
             undo: () => {
-              if (builder?.setData) {
-                builder.setData(this._oldData);
-              }
-              this.setData(this._oldData);
+              if (builder?.setData) builder.setData(_oldData);
+              this.setData(_oldData);
             },
             redo: () => { }
           }
         },
         userInputDataSchema: propertiesSchema,
-        userInputUISchema: {
+        userInputUISchema: advancedSchema ? undefined : {
           type: 'VerticalLayout',
           elements: [
             {
@@ -310,15 +375,15 @@ export default class ScomAreaChart extends Module {
             },
             {
               type: 'Control',
-              scope: '#/properties/options/properties/title'
+              scope: '#/properties/title'
             },
             {
               type: 'Control',
-              scope: '#/properties/options/properties/description'
+              scope: '#/properties/description'
             },
             {
               type: 'Control',
-              scope: '#/properties/options/properties/options',
+              scope: '#/properties/options',
               options: {
                 detail: {
                   type: 'VerticalLayout'
@@ -332,17 +397,19 @@ export default class ScomAreaChart extends Module {
         name: 'Theme Settings',
         icon: 'palette',
         command: (builder: any, userInputData: any) => {
+          let oldTag = {};
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = JSON.parse(JSON.stringify(this.tag));
-              this.setTag(userInputData);
-              if (builder) builder.setTag(userInputData);
+              oldTag = JSON.parse(JSON.stringify(this.tag));
+              if (builder?.setTag) builder.setTag(userInputData);
+              else this.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.setTag(this.oldTag);
-              if (builder) builder.setTag(this.oldTag);
+              this.tag = JSON.parse(JSON.stringify(oldTag));
+              if (builder?.setTag) builder.setTag(this.tag);
+              else this.setTag(this.tag);
             },
             redo: () => { }
           }
@@ -350,19 +417,62 @@ export default class ScomAreaChart extends Module {
         userInputDataSchema: themeSchema
       }
     ]
+    if (advancedSchema) {
+      const advanced = {
+        name: 'Advanced',
+        icon: 'sliders-h',
+        command: (builder: any, userInputData: any) => {
+          let _oldData: IAreaChartOptions = {};
+          return {
+            execute: async () => {
+              _oldData = { ...this._data?.options };
+              if (userInputData?.options !== undefined) this._data.options = userInputData.options;
+              if (builder?.setData) builder.setData(this._data);
+              this.setData(this._data);
+            },
+            undo: () => {
+              this._data.options = { ..._oldData };
+              if (builder?.setData) builder.setData(this._data);
+              this.setData(this._data);
+            },
+            redo: () => { }
+          }
+        },
+        userInputDataSchema: advancedSchema,
+        userInputUISchema: {
+          type: 'VerticalLayout',
+          elements: [
+            {
+              type: 'Control',
+              scope: '#/properties/options',
+              options: {
+                detail: {
+                  type: 'VerticalLayout'
+                }
+              }
+            }
+          ]
+        }
+      }
+      actions.push(advanced);
+    }
     return actions
   }
 
   getConfigurators() {
+    const self = this;
     return [
       {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: () => {
-          return this._getActions(this.getPropertiesSchema(), this.getThemeSchema());
+          return this._getActions(this.getGeneralSchema(), this.getThemeSchema(), this.getAdvanceSchema());
         },
         getData: this.getData.bind(this),
-        setData: this.setData.bind(this),
+        setData: async (data: IAreaChartConfig) => {
+          const defaultData = configData.defaultBuilderData;
+          await this.setData({ ...defaultData, ...data });
+        },
         getTag: this.getTag.bind(this),
         setTag: this.setTag.bind(this)
       },
@@ -370,7 +480,25 @@ export default class ScomAreaChart extends Module {
         name: 'Emdedder Configurator',
         target: 'Embedders',
         getActions: () => {
-          return this._getActions(this.getPropertiesSchema(true), this.getThemeSchema(true))
+          return this._getActions(this.getPropertiesSchema(), this.getThemeSchema())
+        },
+        getLinkParams: () => {
+          const data = this._data || {};
+          return {
+            data: window.btoa(JSON.stringify(data))
+          }
+        },
+        setLinkParams: async (params: any) => {
+          if (params.data) {
+            const utf8String = decodeURIComponent(params.data);
+            const decodedString = window.atob(utf8String);
+            const newData = JSON.parse(decodedString);
+            let resultingData = {
+              ...self._data,
+              ...newData
+            };
+            await this.setData(resultingData);
+          }
         },
         getData: this.getData.bind(this),
         setData: this.setData.bind(this),
@@ -398,17 +526,18 @@ export default class ScomAreaChart extends Module {
   }
 
   private async updateChartData() {
-    if (this._data.apiEndpoint === this.apiEndpoint) {
-      this.onUpdateBlock();
-      return;
-    }
-    const apiEndpoint = this._data.apiEndpoint;
-    this.apiEndpoint = apiEndpoint;
-    if (apiEndpoint) {
-      this.loadingElm.visible = true;
-      const data = await callAPI(apiEndpoint);
-      this.loadingElm.visible = false;
-      if (data && this._data.apiEndpoint === apiEndpoint) {
+    this.loadingElm.visible = true;
+    if (this._data?.mode === ModeType.SNAPSHOT)
+      await this.renderSnapshotData();
+    else
+      await this.renderLiveData();
+    this.loadingElm.visible = false;
+  }
+
+  private async renderSnapshotData() {
+    if (this._data.file?.cid) {
+      const data = await fetchContentByCID(this._data.file.cid);
+      if (data) {
         this.chartData = data;
         this.onUpdateBlock();
         return;
@@ -418,9 +547,31 @@ export default class ScomAreaChart extends Module {
     this.onUpdateBlock();
   }
 
+  private async renderLiveData() {
+    if (this._data.apiEndpoint === this.apiEndpoint) {
+      this.onUpdateBlock();
+      return;
+    }
+    const apiEndpoint = this._data.apiEndpoint;
+    this.apiEndpoint = apiEndpoint;
+    if (apiEndpoint) {
+      let data = null
+      try {
+        data = await callAPI(apiEndpoint);
+        if (data && this._data.apiEndpoint === apiEndpoint) {
+          this.chartData = data;
+          this.onUpdateBlock();
+          return;
+        }
+      } catch {}
+    }
+    this.chartData = [];
+    this.onUpdateBlock();
+  }
+
   private renderChart() {
-    if (!this.pnlChart && this._data.options) return;
-    const { title, description, options } = this._data.options;
+    if ((!this.pnlChart && this._data.options) || !this._data.options) return;
+    const { title, description, options } = this._data;
     this.lbTitle.caption = title;
     this.lbDescription.caption = description;
     this.lbDescription.visible = !!description;
@@ -606,6 +757,7 @@ export default class ScomAreaChart extends Module {
         },
         axisLabel: {
           fontSize: 10,
+          hideOverlap: true,
           formatter: xAxis?.tickFormat ? (value: number, index: number) => {
             if (type === 'time') {
               return moment(value).format(xAxis.tickFormat)
@@ -659,17 +811,20 @@ export default class ScomAreaChart extends Module {
 
   async init() {
     this.isReadyCallbackQueued = true;
-    this.updateTheme();
     super.init();
-    this.classList.add(chartStyle);
+    this.updateTheme();
     const { width, height, darkShadow } = this.tag || {};
     this.width = width || 700;
     this.height = height || 500;
     this.maxWidth = '100%';
     this.chartContainer.style.boxShadow = darkShadow ? '0 -2px 10px rgba(0, 0, 0, 1)' : 'rgba(0, 0, 0, 0.16) 0px 1px 4px';
-    const data = this.getAttribute('data', true);
-    if (data) {
-      this.setData(data);
+    this.classList.add(chartStyle);
+    const lazyLoad = this.getAttribute('lazyLoad', true, false);
+    if (!lazyLoad) {
+      const data = this.getAttribute('data', true);
+      if (data) {
+        this.setData(data);
+      }
     }
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();

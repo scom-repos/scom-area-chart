@@ -1,6 +1,10 @@
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -28,48 +32,48 @@ define("@scom/scom-area-chart/global/utils.ts", ["require", "exports"], function
             return '-';
         const { decimals, format, percentValues } = options || {};
         if (percentValues) {
-            return `${exports.formatNumberWithSeparators(num, 2)}%`;
+            return `${(0, exports.formatNumberWithSeparators)(num, 2)}%`;
         }
         if (format) {
-            return exports.formatNumberByFormat(num, format);
+            return (0, exports.formatNumberByFormat)(num, format);
         }
         const absNum = Math.abs(num);
         if (absNum >= 1000000000) {
-            return exports.formatNumberWithSeparators((num / 1000000000), decimals || 3) + 'B';
+            return (0, exports.formatNumberWithSeparators)((num / 1000000000), decimals || 3) + 'B';
         }
         if (absNum >= 1000000) {
-            return exports.formatNumberWithSeparators((num / 1000000), decimals || 3) + 'M';
+            return (0, exports.formatNumberWithSeparators)((num / 1000000), decimals || 3) + 'M';
         }
         if (absNum >= 1000) {
-            return exports.formatNumberWithSeparators((num / 1000), decimals || 3) + 'K';
+            return (0, exports.formatNumberWithSeparators)((num / 1000), decimals || 3) + 'K';
         }
         if (absNum < 0.0000001) {
-            return exports.formatNumberWithSeparators(num);
+            return (0, exports.formatNumberWithSeparators)(num);
         }
         if (absNum < 0.00001) {
-            return exports.formatNumberWithSeparators(num, 6);
+            return (0, exports.formatNumberWithSeparators)(num, 6);
         }
         if (absNum < 0.001) {
-            return exports.formatNumberWithSeparators(num, 4);
+            return (0, exports.formatNumberWithSeparators)(num, 4);
         }
-        return exports.formatNumberWithSeparators(num, 2);
+        return (0, exports.formatNumberWithSeparators)(num, 2);
     };
     exports.formatNumber = formatNumber;
     const formatNumberByFormat = (num, format, separators) => {
         if (!format)
-            return exports.formatNumberWithSeparators(num);
+            return (0, exports.formatNumberWithSeparators)(num);
         const decimalPlaces = format.split('.')[1] ? format.split('.').length : 0;
         if (format.includes('%')) {
-            return exports.formatNumberWithSeparators((num * 100), decimalPlaces) + '%';
+            return (0, exports.formatNumberWithSeparators)((num * 100), decimalPlaces) + '%';
         }
         const currencySymbol = format.indexOf('$') !== -1 ? '$' : '';
-        const roundedNum = exports.formatNumberWithSeparators(num, decimalPlaces);
+        const roundedNum = (0, exports.formatNumberWithSeparators)(num, decimalPlaces);
         if (separators || !(format.includes('m') || format.includes('a'))) {
             return format.indexOf('$') === 0 ? `${currencySymbol}${roundedNum}` : `${roundedNum}${currencySymbol}`;
         }
         const parts = roundedNum.split('.');
         const decimalPart = parts.length > 1 ? parts[1] : '';
-        const integerPart = exports.formatNumber(parseInt(parts[0].replace(/,/g, '')), { decimals: decimalPart.length });
+        const integerPart = (0, exports.formatNumber)(parseInt(parts[0].replace(/,/g, '')), { decimals: decimalPart.length });
         return `${currencySymbol}${integerPart}`;
     };
     exports.formatNumberByFormat = formatNumberByFormat;
@@ -90,17 +94,26 @@ define("@scom/scom-area-chart/global/utils.ts", ["require", "exports"], function
     };
     exports.formatNumberWithSeparators = formatNumberWithSeparators;
     const groupArrayByKey = (arr) => {
-        return arr.reduce((acc, [key, value]) => {
-            const group = acc.find(([k, _]) => k.toString() === key.toString());
-            if (group) {
-                const val = group[1];
-                group[1] = val === null ? value : isNaN(Number(val)) ? val : Number(val) + Number(value);
+        const groups = new Map();
+        for (const [key, value] of arr) {
+            const strKey = key instanceof Date ? key.getTime().toString() : key.toString();
+            const existingValue = groups.get(strKey);
+            if (existingValue !== undefined) {
+                if (typeof existingValue === 'number' && typeof value === 'number') {
+                    groups.set(strKey, existingValue + value);
+                }
+                else {
+                    groups.set(strKey, value);
+                }
             }
             else {
-                acc.push([key, value]);
+                groups.set(strKey, value);
             }
-            return acc;
-        }, []);
+        }
+        return Array.from(groups.entries()).map(([key, value]) => {
+            const parsedKey = isNaN(Number(key)) ? key : new Date(Number(key));
+            return [parsedKey, value];
+        });
     };
     exports.groupArrayByKey = groupArrayByKey;
     const groupByCategory = (data, category, xAxis, yAxis) => {
@@ -183,31 +196,195 @@ define("@scom/scom-area-chart/assets.ts", ["require", "exports", "@ijstech/compo
         fullPath
     };
 });
-define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@scom/scom-area-chart/global/index.ts", "@scom/scom-area-chart/index.css.ts", "@scom/scom-area-chart/assets.ts"], function (require, exports, components_3, index_1, index_css_1, assets_1) {
+define("@scom/scom-area-chart/data.json.ts", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    ///<amd-module name='@scom/scom-area-chart/data.json.ts'/> 
+    exports.default = {
+        defaultBuilderData: {
+            apiEndpoint: "/dune/query/2030745",
+            title: 'ETH Staked - Cumulative',
+            options: {
+                xColumn: {
+                    key: 'date',
+                    type: 'time'
+                },
+                yColumns: [
+                    'total_eth',
+                ],
+                stacking: true,
+                groupBy: 'depositor_entity_category',
+                seriesOptions: [
+                    {
+                        key: 'CEX',
+                        color: '#d52828'
+                    },
+                    {
+                        key: 'Liquid Staking',
+                        color: '#d2da25'
+                    },
+                    {
+                        key: 'Others',
+                        color: '#000000'
+                    },
+                    {
+                        key: 'Staking Pools',
+                        color: '#49a34f'
+                    },
+                    {
+                        key: 'Unidentified',
+                        color: '#bcb8b8'
+                    }
+                ],
+                xAxis: {
+                    title: 'Date',
+                    tickFormat: 'MMM YYYY'
+                },
+                yAxis: {
+                    title: 'ETH deposited',
+                    labelFormat: '0,000.00ma',
+                    position: 'left'
+                }
+            }
+        }
+    };
+});
+define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@scom/scom-area-chart/global/index.ts", "@scom/scom-area-chart/index.css.ts", "@scom/scom-area-chart/assets.ts", "@scom/scom-area-chart/data.json.ts", "@scom/scom-chart-data-source-setup"], function (require, exports, components_3, index_1, index_css_1, assets_1, data_json_1, scom_chart_data_source_setup_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_3.Styles.Theme.ThemeVars;
-    let ScomAreaChart = class ScomAreaChart extends components_3.Module {
-        constructor(parent, options) {
-            super(parent, options);
-            this.chartData = [];
-            this.apiEndpoint = '';
-            this._oldData = { apiEndpoint: '', options: undefined };
-            this._data = { apiEndpoint: '', options: undefined };
-            this.oldTag = {};
-            this.tag = {};
-            this.defaultEdit = true;
+    const options = {
+        type: 'object',
+        properties: {
+            xColumn: {
+                type: 'object',
+                title: 'X column',
+                required: true,
+                properties: {
+                    key: {
+                        type: 'string',
+                        required: true
+                    },
+                    type: {
+                        type: 'string',
+                        enum: ['time', 'category'],
+                        required: true
+                    }
+                }
+            },
+            yColumns: {
+                type: 'array',
+                title: 'Y columns',
+                required: true,
+                items: {
+                    type: 'string'
+                }
+            },
+            groupBy: {
+                type: 'string'
+            },
+            smooth: {
+                type: 'boolean'
+            },
+            stacking: {
+                type: 'boolean'
+            },
+            legend: {
+                type: 'object',
+                title: 'Show Chart Legend',
+                properties: {
+                    show: {
+                        type: 'boolean'
+                    },
+                    scroll: {
+                        type: 'boolean'
+                    },
+                    position: {
+                        type: 'string',
+                        enum: ['top', 'bottom', 'left', 'right']
+                    }
+                }
+            },
+            showSymbol: {
+                type: 'boolean'
+            },
+            showDataLabels: {
+                type: 'boolean'
+            },
+            percentage: {
+                type: 'boolean'
+            },
+            xAxis: {
+                type: 'object',
+                properties: {
+                    title: {
+                        type: 'string'
+                    },
+                    tickFormat: {
+                        type: 'string'
+                    },
+                    reverseValues: {
+                        type: 'boolean'
+                    }
+                }
+            },
+            yAxis: {
+                type: 'object',
+                properties: {
+                    title: {
+                        type: 'string'
+                    },
+                    tickFormat: {
+                        type: 'string'
+                    },
+                    labelFormat: {
+                        type: 'string'
+                    },
+                    position: {
+                        type: 'string',
+                        enum: ['left', 'right']
+                    }
+                }
+            },
+            seriesOptions: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        key: {
+                            type: 'string',
+                            required: true
+                        },
+                        title: {
+                            type: 'string'
+                        },
+                        color: {
+                            type: 'string',
+                            format: 'color'
+                        }
+                    }
+                }
+            }
         }
+    };
+    let ScomAreaChart = class ScomAreaChart extends components_3.Module {
         static async create(options, parent) {
             let self = new this(parent, options);
             await self.ready();
             return self;
         }
+        constructor(parent, options) {
+            super(parent, options);
+            this.chartData = [];
+            this.apiEndpoint = '';
+            this._data = { apiEndpoint: '', title: '', options: undefined, mode: scom_chart_data_source_setup_1.ModeType.LIVE };
+            this.tag = {};
+            this.defaultEdit = true;
+        }
         getData() {
             return this._data;
         }
         async setData(data) {
-            this._oldData = this._data;
             this._data = data;
             this.updateChartData();
         }
@@ -225,164 +402,55 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             this.height = this.tag.height || 500;
             this.onUpdateBlock();
         }
-        getConfigSchema() {
-            return this.getThemeSchema();
-        }
-        // onConfigSave(config: any) {
-        //   this.tag = config;
-        //   this.onUpdateBlock();
-        // }
-        // async edit() {
-        //   // this.chartContainer.visible = false
-        // }
-        // async confirm() {
-        //   this.onUpdateBlock();
-        //   // this.chartContainer.visible = true
-        // }
-        // async discard() {
-        //   // this.chartContainer.visible = true
-        // }
-        // async config() { }
-        getPropertiesSchema(readOnly) {
+        getPropertiesSchema() {
             const propertiesSchema = {
                 type: 'object',
                 properties: {
-                    apiEndpoint: {
+                    // apiEndpoint: {
+                    //   type: 'string',
+                    //   title: 'API Endpoint',
+                    //   required: true
+                    // },
+                    title: {
                         type: 'string',
-                        title: 'API Endpoint',
                         required: true
                     },
-                    options: {
-                        type: 'object',
-                        properties: {
-                            title: {
-                                type: 'string',
-                                required: true
-                            },
-                            description: {
-                                type: 'string'
-                            },
-                            options: {
-                                type: 'object',
-                                properties: {
-                                    xColumn: {
-                                        type: 'object',
-                                        title: 'X column',
-                                        required: true,
-                                        properties: {
-                                            key: {
-                                                type: 'string',
-                                                required: true
-                                            },
-                                            type: {
-                                                type: 'string',
-                                                enum: ['time', 'category'],
-                                                required: true
-                                            }
-                                        }
-                                    },
-                                    yColumns: {
-                                        type: 'array',
-                                        title: 'Y columns',
-                                        required: true,
-                                        items: {
-                                            type: 'string'
-                                        }
-                                    },
-                                    groupBy: {
-                                        type: 'string'
-                                    },
-                                    smooth: {
-                                        type: 'boolean'
-                                    },
-                                    stacking: {
-                                        type: 'boolean'
-                                    },
-                                    legend: {
-                                        type: 'object',
-                                        title: 'Show Chart Legend',
-                                        properties: {
-                                            show: {
-                                                type: 'boolean'
-                                            },
-                                            scroll: {
-                                                type: 'boolean'
-                                            },
-                                            position: {
-                                                type: 'string',
-                                                enum: ['top', 'bottom', 'left', 'right']
-                                            }
-                                        }
-                                    },
-                                    showSymbol: {
-                                        type: 'boolean'
-                                    },
-                                    showDataLabels: {
-                                        type: 'boolean'
-                                    },
-                                    percentage: {
-                                        type: 'boolean'
-                                    },
-                                    xAxis: {
-                                        type: 'object',
-                                        properties: {
-                                            title: {
-                                                type: 'string'
-                                            },
-                                            tickFormat: {
-                                                type: 'string'
-                                            },
-                                            reverseValues: {
-                                                type: 'boolean'
-                                            }
-                                        }
-                                    },
-                                    yAxis: {
-                                        type: 'object',
-                                        properties: {
-                                            title: {
-                                                type: 'string'
-                                            },
-                                            tickFormat: {
-                                                type: 'string'
-                                            },
-                                            labelFormat: {
-                                                type: 'string'
-                                            },
-                                            position: {
-                                                type: 'string',
-                                                enum: ['left', 'right']
-                                            }
-                                        }
-                                    },
-                                    seriesOptions: {
-                                        type: 'array',
-                                        items: {
-                                            type: 'object',
-                                            properties: {
-                                                key: {
-                                                    type: 'string',
-                                                    required: true
-                                                },
-                                                title: {
-                                                    type: 'string'
-                                                },
-                                                color: {
-                                                    type: 'string',
-                                                    format: 'color'
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    description: {
+                        type: 'string'
+                    },
+                    options
+                }
+            };
+            return propertiesSchema;
+        }
+        getGeneralSchema() {
+            const propertiesSchema = {
+                type: 'object',
+                required: ['title'],
+                properties: {
+                    // apiEndpoint: {
+                    //   type: 'string'
+                    // },
+                    title: {
+                        type: 'string'
+                    },
+                    description: {
+                        type: 'string'
                     }
                 }
             };
             return propertiesSchema;
         }
-        getThemeSchema(readOnly) {
+        getAdvanceSchema() {
+            const propertiesSchema = {
+                type: 'object',
+                properties: {
+                    options
+                }
+            };
+            return propertiesSchema;
+        }
+        getThemeSchema() {
             const themeSchema = {
                 type: 'object',
                 properties: {
@@ -397,9 +465,9 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                         type: 'string',
                         format: 'color'
                     },
-                    width: {
-                        type: 'string'
-                    },
+                    // width: {
+                    //   type: 'string'
+                    // },
                     height: {
                         type: 'string'
                     }
@@ -407,30 +475,103 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             };
             return themeSchema;
         }
-        _getActions(propertiesSchema, themeSchema) {
+        _getActions(propertiesSchema, themeSchema, advancedSchema) {
             const actions = [
+                {
+                    name: 'Data Source',
+                    icon: 'database',
+                    command: (builder, userInputData) => {
+                        let _oldData = { apiEndpoint: '', title: '', options: undefined, mode: scom_chart_data_source_setup_1.ModeType.LIVE };
+                        return {
+                            execute: async () => {
+                                _oldData = Object.assign({}, this._data);
+                                if (userInputData === null || userInputData === void 0 ? void 0 : userInputData.mode)
+                                    this._data.mode = userInputData === null || userInputData === void 0 ? void 0 : userInputData.mode;
+                                if (userInputData === null || userInputData === void 0 ? void 0 : userInputData.file)
+                                    this._data.file = userInputData === null || userInputData === void 0 ? void 0 : userInputData.file;
+                                if (userInputData === null || userInputData === void 0 ? void 0 : userInputData.apiEndpoint)
+                                    this._data.apiEndpoint = userInputData === null || userInputData === void 0 ? void 0 : userInputData.apiEndpoint;
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
+                                this.setData(this._data);
+                            },
+                            undo: () => {
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(_oldData);
+                                this.setData(_oldData);
+                            },
+                            redo: () => { }
+                        };
+                    },
+                    customUI: {
+                        render: (data, onConfirm) => {
+                            const vstack = new components_3.VStack(null, { gap: '1rem' });
+                            const config = new scom_chart_data_source_setup_1.default(null, Object.assign(Object.assign({}, this._data), { chartData: JSON.stringify(this.chartData) }));
+                            const hstack = new components_3.HStack(null, {
+                                verticalAlignment: 'center',
+                                horizontalAlignment: 'end'
+                            });
+                            const button = new components_3.Button(null, {
+                                caption: 'Confirm',
+                                width: 'auto',
+                                height: 40,
+                                font: { color: Theme.colors.primary.contrastText }
+                            });
+                            hstack.append(button);
+                            vstack.append(config);
+                            vstack.append(hstack);
+                            button.onClick = async () => {
+                                const { apiEndpoint, file, mode } = config.data;
+                                if (mode === 'Live') {
+                                    if (!apiEndpoint)
+                                        return;
+                                    this._data.apiEndpoint = apiEndpoint;
+                                    this.updateChartData();
+                                }
+                                else {
+                                    if (!(file === null || file === void 0 ? void 0 : file.cid))
+                                        return;
+                                    this.chartData = config.data.chartData ? JSON.parse(config.data.chartData) : [];
+                                    this.onUpdateBlock();
+                                }
+                                if (onConfirm) {
+                                    onConfirm(true, Object.assign(Object.assign({}, this._data), { apiEndpoint, file, mode }));
+                                }
+                            };
+                            return vstack;
+                        }
+                    }
+                },
                 {
                     name: 'Settings',
                     icon: 'cog',
                     command: (builder, userInputData) => {
+                        let _oldData = { apiEndpoint: '', title: '', options: undefined, mode: scom_chart_data_source_setup_1.ModeType.LIVE };
                         return {
                             execute: async () => {
-                                if (builder === null || builder === void 0 ? void 0 : builder.setData) {
-                                    builder.setData(userInputData);
+                                _oldData = Object.assign({}, this._data);
+                                if (userInputData) {
+                                    if (advancedSchema) {
+                                        this._data = Object.assign(Object.assign({}, this._data), userInputData);
+                                    }
+                                    else {
+                                        this._data = Object.assign({}, userInputData);
+                                    }
                                 }
-                                this.setData(userInputData);
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
+                                this.setData(this._data);
                             },
                             undo: () => {
-                                if (builder === null || builder === void 0 ? void 0 : builder.setData) {
-                                    builder.setData(this._oldData);
-                                }
-                                this.setData(this._oldData);
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(_oldData);
+                                this.setData(_oldData);
                             },
                             redo: () => { }
                         };
                     },
                     userInputDataSchema: propertiesSchema,
-                    userInputUISchema: {
+                    userInputUISchema: advancedSchema ? undefined : {
                         type: 'VerticalLayout',
                         elements: [
                             {
@@ -440,15 +581,15 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                             },
                             {
                                 type: 'Control',
-                                scope: '#/properties/options/properties/title'
+                                scope: '#/properties/title'
                             },
                             {
                                 type: 'Control',
-                                scope: '#/properties/options/properties/description'
+                                scope: '#/properties/description'
                             },
                             {
                                 type: 'Control',
-                                scope: '#/properties/options/properties/options',
+                                scope: '#/properties/options',
                                 options: {
                                     detail: {
                                         type: 'VerticalLayout'
@@ -462,21 +603,25 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     name: 'Theme Settings',
                     icon: 'palette',
                     command: (builder, userInputData) => {
+                        let oldTag = {};
                         return {
                             execute: async () => {
                                 if (!userInputData)
                                     return;
-                                this.oldTag = JSON.parse(JSON.stringify(this.tag));
-                                this.setTag(userInputData);
-                                if (builder)
+                                oldTag = JSON.parse(JSON.stringify(this.tag));
+                                if (builder === null || builder === void 0 ? void 0 : builder.setTag)
                                     builder.setTag(userInputData);
+                                else
+                                    this.setTag(userInputData);
                             },
                             undo: () => {
                                 if (!userInputData)
                                     return;
-                                this.setTag(this.oldTag);
-                                if (builder)
-                                    builder.setTag(this.oldTag);
+                                this.tag = JSON.parse(JSON.stringify(oldTag));
+                                if (builder === null || builder === void 0 ? void 0 : builder.setTag)
+                                    builder.setTag(this.tag);
+                                else
+                                    this.setTag(this.tag);
                             },
                             redo: () => { }
                         };
@@ -484,18 +629,65 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     userInputDataSchema: themeSchema
                 }
             ];
+            if (advancedSchema) {
+                const advanced = {
+                    name: 'Advanced',
+                    icon: 'sliders-h',
+                    command: (builder, userInputData) => {
+                        let _oldData = {};
+                        return {
+                            execute: async () => {
+                                var _a;
+                                _oldData = Object.assign({}, (_a = this._data) === null || _a === void 0 ? void 0 : _a.options);
+                                if ((userInputData === null || userInputData === void 0 ? void 0 : userInputData.options) !== undefined)
+                                    this._data.options = userInputData.options;
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
+                                this.setData(this._data);
+                            },
+                            undo: () => {
+                                this._data.options = Object.assign({}, _oldData);
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
+                                this.setData(this._data);
+                            },
+                            redo: () => { }
+                        };
+                    },
+                    userInputDataSchema: advancedSchema,
+                    userInputUISchema: {
+                        type: 'VerticalLayout',
+                        elements: [
+                            {
+                                type: 'Control',
+                                scope: '#/properties/options',
+                                options: {
+                                    detail: {
+                                        type: 'VerticalLayout'
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                };
+                actions.push(advanced);
+            }
             return actions;
         }
         getConfigurators() {
+            const self = this;
             return [
                 {
                     name: 'Builder Configurator',
                     target: 'Builders',
                     getActions: () => {
-                        return this._getActions(this.getPropertiesSchema(), this.getThemeSchema());
+                        return this._getActions(this.getGeneralSchema(), this.getThemeSchema(), this.getAdvanceSchema());
                     },
                     getData: this.getData.bind(this),
-                    setData: this.setData.bind(this),
+                    setData: async (data) => {
+                        const defaultData = data_json_1.default.defaultBuilderData;
+                        await this.setData(Object.assign(Object.assign({}, defaultData), data));
+                    },
                     getTag: this.getTag.bind(this),
                     setTag: this.setTag.bind(this)
                 },
@@ -503,7 +695,22 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     name: 'Emdedder Configurator',
                     target: 'Embedders',
                     getActions: () => {
-                        return this._getActions(this.getPropertiesSchema(true), this.getThemeSchema(true));
+                        return this._getActions(this.getPropertiesSchema(), this.getThemeSchema());
+                    },
+                    getLinkParams: () => {
+                        const data = this._data || {};
+                        return {
+                            data: window.btoa(JSON.stringify(data))
+                        };
+                    },
+                    setLinkParams: async (params) => {
+                        if (params.data) {
+                            const utf8String = decodeURIComponent(params.data);
+                            const decodedString = window.atob(utf8String);
+                            const newData = JSON.parse(decodedString);
+                            let resultingData = Object.assign(Object.assign({}, self._data), newData);
+                            await this.setData(resultingData);
+                        }
                     },
                     getData: this.getData.bind(this),
                     setData: this.setData.bind(this),
@@ -528,17 +735,19 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             this.updateTheme();
         }
         async updateChartData() {
-            if (this._data.apiEndpoint === this.apiEndpoint) {
-                this.onUpdateBlock();
-                return;
-            }
-            const apiEndpoint = this._data.apiEndpoint;
-            this.apiEndpoint = apiEndpoint;
-            if (apiEndpoint) {
-                this.loadingElm.visible = true;
-                const data = await index_1.callAPI(apiEndpoint);
-                this.loadingElm.visible = false;
-                if (data && this._data.apiEndpoint === apiEndpoint) {
+            var _a;
+            this.loadingElm.visible = true;
+            if (((_a = this._data) === null || _a === void 0 ? void 0 : _a.mode) === scom_chart_data_source_setup_1.ModeType.SNAPSHOT)
+                await this.renderSnapshotData();
+            else
+                await this.renderLiveData();
+            this.loadingElm.visible = false;
+        }
+        async renderSnapshotData() {
+            var _a;
+            if ((_a = this._data.file) === null || _a === void 0 ? void 0 : _a.cid) {
+                const data = await (0, scom_chart_data_source_setup_1.fetchContentByCID)(this._data.file.cid);
+                if (data) {
                     this.chartData = data;
                     this.onUpdateBlock();
                     return;
@@ -547,10 +756,32 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             this.chartData = [];
             this.onUpdateBlock();
         }
-        renderChart() {
-            if (!this.pnlChart && this._data.options)
+        async renderLiveData() {
+            if (this._data.apiEndpoint === this.apiEndpoint) {
+                this.onUpdateBlock();
                 return;
-            const { title, description, options } = this._data.options;
+            }
+            const apiEndpoint = this._data.apiEndpoint;
+            this.apiEndpoint = apiEndpoint;
+            if (apiEndpoint) {
+                let data = null;
+                try {
+                    data = await (0, index_1.callAPI)(apiEndpoint);
+                    if (data && this._data.apiEndpoint === apiEndpoint) {
+                        this.chartData = data;
+                        this.onUpdateBlock();
+                        return;
+                    }
+                }
+                catch (_a) { }
+            }
+            this.chartData = [];
+            this.onUpdateBlock();
+        }
+        renderChart() {
+            if ((!this.pnlChart && this._data.options) || !this._data.options)
+                return;
+            const { title, description, options } = this._data;
             this.lbTitle.caption = title;
             this.lbDescription.caption = description;
             this.lbDescription.visible = !!description;
@@ -573,13 +804,13 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             let arr = this.chartData;
             const item = (arr && arr[0]) || {};
             if (groupBy && item[groupBy] !== undefined) {
-                const group = index_1.groupByCategory(arr, groupBy, key, yColumns[0]);
-                const times = index_1.extractUniqueTimes(arr, key);
+                const group = (0, index_1.groupByCategory)(arr, groupBy, key, yColumns[0]);
+                const times = (0, index_1.extractUniqueTimes)(arr, key);
                 let groupData = {};
                 const keys = Object.keys(group);
                 keys.map(v => {
-                    const _data = index_1.concatUnique(times, group[v]);
-                    groupData[v] = index_1.groupArrayByKey(Object.keys(_data).map(m => [type === 'time' ? new Date(m) : m, _data[m]]));
+                    const _data = (0, index_1.concatUnique)(times, group[v]);
+                    groupData[v] = (0, index_1.groupArrayByKey)(Object.keys(_data).map(m => [type === 'time' ? new Date(m) : m, _data[m]]));
                 });
                 const isPercentage = percentage && groupData[keys[0]] && typeof groupData[keys[0]][0][1] === 'number';
                 _series = keys.map(v => {
@@ -615,7 +846,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                         label: showDataLabels ? {
                             show: true,
                             formatter: function (params) {
-                                return index_1.formatNumber(params.value);
+                                return (0, index_1.formatNumber)(params.value);
                             }
                         } : undefined,
                         data: _data
@@ -629,7 +860,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     if (isPercentage && typeof arr[0][col] !== 'number') {
                         isPercentage = false;
                     }
-                    groupData[col] = index_1.groupArrayByKey(arr.map(v => [type === 'time' ? new Date(v[key]) : col, v[col]]));
+                    groupData[col] = (0, index_1.groupArrayByKey)(arr.map(v => [type === 'time' ? new Date(v[key]) : col, v[col]]));
                 });
                 _series = yColumns.map((col) => {
                     let _data = [];
@@ -664,7 +895,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                         label: showDataLabels ? {
                             show: true,
                             formatter: function (params) {
-                                return index_1.formatNumber(params.value);
+                                return (0, index_1.formatNumber)(params.value);
                             }
                         } : undefined,
                         data: _data
@@ -709,14 +940,14 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                         return [x, y];
                     },
                     formatter: (params) => {
-                        let res = `<b>${xColumn.type === 'time' ? components_3.moment(params[0].axisValue).format('YYYY-MM-DD HH:mm') : params[0].axisValue}</b>`;
+                        let res = `<b>${xColumn.type === 'time' ? (0, components_3.moment)(params[0].axisValue).format('YYYY-MM-DD HH:mm') : params[0].axisValue}</b>`;
                         if (_series.length === 1) {
-                            res += `<div style="display: flex; justify-content: space-between; gap: 10px"><span>${params[0].marker} ${params[0].seriesName}</span> ${params[0].value[1] === null ? '-' : percentage ? index_1.formatNumber(params[0].value[1], { percentValues: true }) : index_1.formatNumberByFormat(params[0].value[1], (yAxis === null || yAxis === void 0 ? void 0 : yAxis.labelFormat) ? yAxis.labelFormat : undefined)}</div>`;
+                            res += `<div style="display: flex; justify-content: space-between; gap: 10px"><span>${params[0].marker} ${params[0].seriesName}</span> ${params[0].value[1] === null ? '-' : percentage ? (0, index_1.formatNumber)(params[0].value[1], { percentValues: true }) : (0, index_1.formatNumberByFormat)(params[0].value[1], (yAxis === null || yAxis === void 0 ? void 0 : yAxis.labelFormat) ? yAxis.labelFormat : undefined)}</div>`;
                         }
                         else {
                             for (const param of params) {
                                 if (param.value[1] !== null) {
-                                    res += `<div style="display: flex; justify-content: space-between; gap: 10px"><span>${param.marker} ${param.seriesName}</span> ${percentage ? index_1.formatNumber(param.value[1], { percentValues: true }) : index_1.formatNumberByFormat(param.value[1], (yAxis === null || yAxis === void 0 ? void 0 : yAxis.labelFormat) ? yAxis.labelFormat : undefined)}</div>`;
+                                    res += `<div style="display: flex; justify-content: space-between; gap: 10px"><span>${param.marker} ${param.seriesName}</span> ${percentage ? (0, index_1.formatNumber)(param.value[1], { percentValues: true }) : (0, index_1.formatNumberByFormat)(param.value[1], (yAxis === null || yAxis === void 0 ? void 0 : yAxis.labelFormat) ? yAxis.labelFormat : undefined)}</div>`;
                                 }
                             }
                         }
@@ -742,14 +973,15 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     },
                     axisLabel: {
                         fontSize: 10,
+                        hideOverlap: true,
                         formatter: (xAxis === null || xAxis === void 0 ? void 0 : xAxis.tickFormat) ? (value, index) => {
                             if (type === 'time') {
-                                return components_3.moment(value).format(xAxis.tickFormat);
+                                return (0, components_3.moment)(value).format(xAxis.tickFormat);
                             }
                             else {
                                 if (isNaN(value))
                                     return value;
-                                return index_1.formatNumber(value, { format: xAxis.tickFormat, decimals: 2 });
+                                return (0, index_1.formatNumber)(value, { format: xAxis.tickFormat, decimals: 2 });
                             }
                         } : undefined
                     }
@@ -772,7 +1004,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                         fontSize: 10,
                         position: 'end',
                         formatter: (value, index) => {
-                            return index_1.formatNumber(value, { format: yAxis === null || yAxis === void 0 ? void 0 : yAxis.tickFormat, decimals: 2, percentValues: percentage });
+                            return (0, index_1.formatNumber)(value, { format: yAxis === null || yAxis === void 0 ? void 0 : yAxis.tickFormat, decimals: 2, percentValues: percentage });
                         }
                     },
                     splitNumber: 4
@@ -796,17 +1028,20 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
         }
         async init() {
             this.isReadyCallbackQueued = true;
-            this.updateTheme();
             super.init();
-            this.classList.add(index_css_1.chartStyle);
+            this.updateTheme();
             const { width, height, darkShadow } = this.tag || {};
             this.width = width || 700;
             this.height = height || 500;
             this.maxWidth = '100%';
             this.chartContainer.style.boxShadow = darkShadow ? '0 -2px 10px rgba(0, 0, 0, 1)' : 'rgba(0, 0, 0, 0.16) 0px 1px 4px';
-            const data = this.getAttribute('data', true);
-            if (data) {
-                this.setData(data);
+            this.classList.add(index_css_1.chartStyle);
+            const lazyLoad = this.getAttribute('lazyLoad', true, false);
+            if (!lazyLoad) {
+                const data = this.getAttribute('data', true);
+                if (data) {
+                    this.setData(data);
+                }
             }
             this.isReadyCallbackQueued = false;
             this.executeReadyCallback();
@@ -829,7 +1064,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
     };
     ScomAreaChart = __decorate([
         components_3.customModule,
-        components_3.customElements('i-scom-area-chart')
+        (0, components_3.customElements)('i-scom-area-chart')
     ], ScomAreaChart);
     exports.default = ScomAreaChart;
 });
