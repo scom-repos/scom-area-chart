@@ -41,8 +41,8 @@ export interface IAreaChartConfig {
   description?: string,
   options: IAreaChartOptions,
   file?: {
-    cid?: string,
-    name?: string
+    cid: string,
+    name: string
   },
   mode: ModeType
 }

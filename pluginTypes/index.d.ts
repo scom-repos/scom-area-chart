@@ -41,8 +41,8 @@ declare module "@scom/scom-area-chart/global/interfaces.ts" {
         description?: string;
         options: IAreaChartOptions;
         file?: {
-            cid?: string;
-            name?: string;
+            cid: string;
+            name: string;
         };
         mode: ModeType;
     }
