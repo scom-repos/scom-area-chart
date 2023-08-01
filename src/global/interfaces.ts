@@ -1,3 +1,5 @@
+import { ModeType } from "@scom/scom-chart-data-source-setup"
+
 export interface IAreaChartOptions {
   xColumn?: {
     key: string,
@@ -34,8 +36,13 @@ export interface IAreaChartOptions {
 }
 
 export interface IAreaChartConfig {
-  apiEndpoint: string,
+  apiEndpoint?: string,
   title: string,
   description?: string,
-  options: IAreaChartOptions
+  options: IAreaChartOptions,
+  file?: {
+    cid: string,
+    name: string
+  },
+  mode: ModeType
 }
