@@ -36,7 +36,8 @@ declare module "@scom/scom-area-chart/global/interfaces.ts" {
         percentage?: boolean;
     }
     export interface IAreaChartConfig {
-        apiEndpoint?: string;
+        dataSource: string;
+        queryId: string;
         title: string;
         description?: string;
         options: IAreaChartOptions;
@@ -72,7 +73,7 @@ declare module "@scom/scom-area-chart/global/utils.ts" {
     }, obj2: {
         [key: string]: any;
     }) => {};
-    export const callAPI: (apiEndpoint: string) => Promise<any>;
+    export const callAPI: (dataSource: string, queryId: string) => Promise<any>;
 }
 /// <amd-module name="@scom/scom-area-chart/global/index.ts" />
 declare module "@scom/scom-area-chart/global/index.ts" {
@@ -112,7 +113,8 @@ declare module "@scom/scom-area-chart/assets.ts" {
 declare module "@scom/scom-area-chart/data.json.ts" {
     const _default_1: {
         defaultBuilderData: {
-            apiEndpoint: string;
+            dataSource: string;
+            queryId: string;
             title: string;
             options: {
                 xColumn: {

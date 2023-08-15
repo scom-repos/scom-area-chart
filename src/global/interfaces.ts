@@ -36,7 +36,8 @@ export interface IAreaChartOptions {
 }
 
 export interface IAreaChartConfig {
-  apiEndpoint?: string,
+  dataSource: string;
+  queryId: string;
   title: string,
   description?: string,
   options: IAreaChartOptions,
