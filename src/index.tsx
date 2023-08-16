@@ -157,11 +157,13 @@ export default class ScomAreaChart extends Module {
             const dataSourceSetup = new ScomChartDataSourceSetup(null, {
               ...this._data, 
               chartData: JSON.stringify(this.chartData),
-              onCustomDataChanged: async (data: any) => {
-                onChange(true, {
-                  ...this._data, 
-                  ...data
-                });
+              onCustomDataChanged: async (dataSourceSetupData: any) => {
+                if (onChange) {
+                  onChange(true, {
+                    ...this._data, 
+                    ...dataSourceSetupData
+                  });
+                }
               }
             });
             const hstackBtnConfirm = new HStack(null, {
