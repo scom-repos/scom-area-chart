@@ -37,11 +37,12 @@ declare global {
 }
 
 const DefaultData: IAreaChartConfig = {
-  dataSource: DataSource.Dune, 
-  queryId: '', 
-  title: '', 
-  options: undefined, 
-  mode: ModeType.LIVE 
+  dataSource: DataSource.Dune,
+  queryId: '',
+  apiEndpoint: '',
+  title: '',
+  options: undefined,
+  mode: ModeType.LIVE
 };
 
 @customModule
@@ -58,9 +59,6 @@ export default class ScomAreaChart extends Module {
   private _data: IAreaChartConfig = DefaultData;
   tag: any = {};
   defaultEdit: boolean = true;
-  readonly onConfirm: () => Promise<void>;
-  readonly onDiscard: () => Promise<void>;
-  readonly onEdit: () => Promise<void>;
 
   static async create(options?: ScomAreaChartElement, parent?: Container) {
     let self = new this(parent, options);
@@ -140,6 +138,7 @@ export default class ScomAreaChart extends Module {
               if (userInputData?.file) this._data.file = userInputData?.file;
               if (userInputData?.dataSource) this._data.dataSource = userInputData?.dataSource;
               if (userInputData?.queryId) this._data.queryId = userInputData?.queryId;
+              if (userInputData?.apiEndpoint) this._data.apiEndpoint = userInputData?.apiEndpoint;
               if (userInputData?.options !== undefined) this._data.options = userInputData.options;
               if (builder?.setData) builder.setData(this._data);
               this.setData(this._data);
@@ -153,14 +152,14 @@ export default class ScomAreaChart extends Module {
         },
         customUI: {
           render: (data?: any, onConfirm?: (result: boolean, data: any) => void, onChange?: (result: boolean, data: any) => void) => {
-            const vstack = new VStack(null, {gap: '1rem'});
+            const vstack = new VStack(null, { gap: '1rem' });
             const dataSourceSetup = new ScomChartDataSourceSetup(null, {
-              ...this._data, 
+              ...this._data,
               chartData: JSON.stringify(this.chartData),
               onCustomDataChanged: async (dataSourceSetupData: any) => {
                 if (onChange) {
                   onChange(true, {
-                    ...this._data, 
+                    ...this._data,
                     ...dataSourceSetupData
                   });
                 }
@@ -174,7 +173,7 @@ export default class ScomAreaChart extends Module {
               caption: 'Confirm',
               width: 'auto',
               height: 40,
-              font: {color: Theme.colors.primary.contrastText}
+              font: { color: Theme.colors.primary.contrastText }
             });
             hstackBtnConfirm.append(button);
             vstack.append(dataSourceSetup);
@@ -187,30 +186,23 @@ export default class ScomAreaChart extends Module {
             vstack.append(hstackBtnConfirm);
             if (onChange) {
               dataOptionsForm.onCustomInputChanged = async (optionsFormData: any) => {
-                const { dataSource, queryId, file, mode } = dataSourceSetup.data;
                 onChange(true, {
-                  ...this._data, 
+                  ...this._data,
                   ...optionsFormData,
-                  dataSource, 
-                  queryId,
-                  file, 
-                  mode
+                  ...dataSourceSetup.data
                 });
               }
             }
             button.onClick = async () => {
-              const { dataSource, queryId, file, mode } = dataSourceSetup.data;
+              const { dataSource, file, mode } = dataSourceSetup.data;
               if (mode === ModeType.LIVE && !dataSource) return;
               if (mode === ModeType.SNAPSHOT && !file?.cid) return;
               if (onConfirm) {
                 const optionsFormData = await dataOptionsForm.refreshFormData();
                 onConfirm(true, {
-                  ...this._data, 
+                  ...this._data,
                   ...optionsFormData,
-                  dataSource, 
-                  queryId,
-                  file, 
-                  mode
+                  ...dataSourceSetup.data
                 });
               }
             }
@@ -362,7 +354,7 @@ export default class ScomAreaChart extends Module {
           this.onUpdateBlock();
           return;
         }
-      } catch {}
+      } catch { }
     }
     this.chartData = [];
     this.onUpdateBlock();
@@ -370,16 +362,19 @@ export default class ScomAreaChart extends Module {
 
   private async renderLiveData() {
     const dataSource = this._data.dataSource;
-    const queryId = this._data.queryId;
-    if (dataSource && queryId) {
+    if (dataSource) {
       try {
-        const data = await callAPI(dataSource, queryId);
+        const data = await callAPI({
+          dataSource,
+          queryId: this._data.queryId,
+          apiEndpoint: this._data.apiEndpoint
+        });
         if (data) {
           this.chartData = data;
           this.onUpdateBlock();
           return;
         }
-      } catch {}
+      } catch { }
     }
     this.chartData = [];
     this.onUpdateBlock();
