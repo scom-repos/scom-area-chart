@@ -37,7 +37,8 @@ export interface IAreaChartOptions {
 
 export interface IAreaChartConfig {
   dataSource: string;
-  queryId: string;
+  queryId?: string;
+  apiEndpoint?: string;
   title: string,
   description?: string,
   options: IAreaChartOptions,
@@ -46,4 +47,10 @@ export interface IAreaChartConfig {
     name: string
   },
   mode: ModeType
+}
+
+export interface IFetchDataOptions {
+  dataSource: string;
+  queryId?: string;
+  apiEndpoint?: string;
 }
