@@ -143,42 +143,45 @@ declare module "@scom/scom-area-chart/data.json.ts" {
 /// <amd-module name="@scom/scom-area-chart/formSchema.ts" />
 declare module "@scom/scom-area-chart/formSchema.ts" {
     export function getBuilderSchema(): {
-        general: {
-            dataSchema: {
-                type: string;
-                required: string[];
-                properties: {
-                    title: {
-                        type: string;
-                    };
-                    description: {
-                        type: string;
-                    };
+        dataSchema: {
+            type: string;
+            required: string[];
+            properties: {
+                darkShadow: {
+                    type: string;
+                };
+                fontColor: {
+                    type: string;
+                    format: string;
+                };
+                backgroundColor: {
+                    type: string;
+                    format: string;
+                };
+                height: {
+                    type: string;
+                };
+                title: {
+                    type: string;
+                };
+                description: {
+                    type: string;
                 };
             };
-            uiSchema: {
+        };
+        uiSchema: {
+            type: string;
+            elements: {
                 type: string;
-                elements: ({
+                label: string;
+                elements: {
                     type: string;
-                    scope: string;
-                    title: string;
-                    options?: undefined;
-                } | {
-                    type: string;
-                    scope: string;
-                    title?: undefined;
-                    options?: undefined;
-                } | {
-                    type: string;
-                    scope: string;
-                    options: {
-                        detail: {
-                            type: string;
-                        };
-                    };
-                    title?: undefined;
-                })[];
-            };
+                    elements: {
+                        type: string;
+                        scope: string;
+                    }[];
+                }[];
+            }[];
         };
         advanced: {
             dataSchema: {
@@ -317,150 +320,141 @@ declare module "@scom/scom-area-chart/formSchema.ts" {
                 }[];
             };
         };
-        theme: {
-            dataSchema: {
-                type: string;
-                properties: {
-                    darkShadow: {
-                        type: string;
-                    };
-                    fontColor: {
-                        type: string;
-                        format: string;
-                    };
-                    backgroundColor: {
-                        type: string;
-                        format: string;
-                    };
-                    height: {
-                        type: string;
-                    };
-                };
-            };
-        };
     };
     export function getEmbedderSchema(): {
-        general: {
-            dataSchema: {
-                type: string;
-                properties: {
-                    title: {
-                        type: string;
-                        required: boolean;
-                    };
-                    description: {
-                        type: string;
-                    };
-                    options: {
-                        type: string;
-                        title: string;
-                        properties: {
-                            xColumn: {
+        dataSchema: {
+            type: string;
+            properties: {
+                darkShadow: {
+                    type: string;
+                };
+                fontColor: {
+                    type: string;
+                    format: string;
+                };
+                backgroundColor: {
+                    type: string;
+                    format: string;
+                };
+                height: {
+                    type: string;
+                };
+                title: {
+                    type: string;
+                    required: boolean;
+                };
+                description: {
+                    type: string;
+                };
+                options: {
+                    type: string;
+                    title: string;
+                    properties: {
+                        xColumn: {
+                            type: string;
+                            title: string;
+                            required: boolean;
+                            properties: {
+                                key: {
+                                    type: string;
+                                    required: boolean;
+                                };
+                                type: {
+                                    type: string;
+                                    enum: string[];
+                                    required: boolean;
+                                };
+                            };
+                        };
+                        yColumns: {
+                            type: string;
+                            title: string;
+                            required: boolean;
+                            items: {
                                 type: string;
-                                title: string;
-                                required: boolean;
+                            };
+                        };
+                        groupBy: {
+                            type: string;
+                        };
+                        smooth: {
+                            type: string;
+                        };
+                        stacking: {
+                            type: string;
+                        };
+                        legend: {
+                            type: string;
+                            title: string;
+                            properties: {
+                                show: {
+                                    type: string;
+                                };
+                                scroll: {
+                                    type: string;
+                                };
+                                position: {
+                                    type: string;
+                                    enum: string[];
+                                };
+                            };
+                        };
+                        showSymbol: {
+                            type: string;
+                        };
+                        showDataLabels: {
+                            type: string;
+                        };
+                        percentage: {
+                            type: string;
+                        };
+                        xAxis: {
+                            type: string;
+                            properties: {
+                                title: {
+                                    type: string;
+                                };
+                                tickFormat: {
+                                    type: string;
+                                };
+                                reverseValues: {
+                                    type: string;
+                                };
+                            };
+                        };
+                        yAxis: {
+                            type: string;
+                            properties: {
+                                title: {
+                                    type: string;
+                                };
+                                tickFormat: {
+                                    type: string;
+                                };
+                                labelFormat: {
+                                    type: string;
+                                };
+                                position: {
+                                    type: string;
+                                    enum: string[];
+                                };
+                            };
+                        };
+                        seriesOptions: {
+                            type: string;
+                            items: {
+                                type: string;
                                 properties: {
                                     key: {
                                         type: string;
                                         required: boolean;
                                     };
-                                    type: {
-                                        type: string;
-                                        enum: string[];
-                                        required: boolean;
-                                    };
-                                };
-                            };
-                            yColumns: {
-                                type: string;
-                                title: string;
-                                required: boolean;
-                                items: {
-                                    type: string;
-                                };
-                            };
-                            groupBy: {
-                                type: string;
-                            };
-                            smooth: {
-                                type: string;
-                            };
-                            stacking: {
-                                type: string;
-                            };
-                            legend: {
-                                type: string;
-                                title: string;
-                                properties: {
-                                    show: {
-                                        type: string;
-                                    };
-                                    scroll: {
-                                        type: string;
-                                    };
-                                    position: {
-                                        type: string;
-                                        enum: string[];
-                                    };
-                                };
-                            };
-                            showSymbol: {
-                                type: string;
-                            };
-                            showDataLabels: {
-                                type: string;
-                            };
-                            percentage: {
-                                type: string;
-                            };
-                            xAxis: {
-                                type: string;
-                                properties: {
                                     title: {
                                         type: string;
                                     };
-                                    tickFormat: {
+                                    color: {
                                         type: string;
-                                    };
-                                    reverseValues: {
-                                        type: string;
-                                    };
-                                };
-                            };
-                            yAxis: {
-                                type: string;
-                                properties: {
-                                    title: {
-                                        type: string;
-                                    };
-                                    tickFormat: {
-                                        type: string;
-                                    };
-                                    labelFormat: {
-                                        type: string;
-                                    };
-                                    position: {
-                                        type: string;
-                                        enum: string[];
-                                    };
-                                };
-                            };
-                            seriesOptions: {
-                                type: string;
-                                items: {
-                                    type: string;
-                                    properties: {
-                                        key: {
-                                            type: string;
-                                            required: boolean;
-                                        };
-                                        title: {
-                                            type: string;
-                                        };
-                                        color: {
-                                            type: string;
-                                            format: string;
-                                        };
+                                        format: string;
                                     };
                                 };
                             };
@@ -469,26 +463,32 @@ declare module "@scom/scom-area-chart/formSchema.ts" {
                 };
             };
         };
-        theme: {
-            dataSchema: {
+        uiSchema: {
+            type: string;
+            elements: {
                 type: string;
-                properties: {
-                    darkShadow: {
+                label: string;
+                elements: {
+                    type: string;
+                    elements: ({
                         type: string;
-                    };
-                    fontColor: {
+                        scope: string;
+                        elements?: undefined;
+                    } | {
                         type: string;
-                        format: string;
-                    };
-                    backgroundColor: {
-                        type: string;
-                        format: string;
-                    };
-                    height: {
-                        type: string;
-                    };
-                };
-            };
+                        elements: {
+                            type: string;
+                            scope: string;
+                            options: {
+                                detail: {
+                                    type: string;
+                                };
+                            };
+                        }[];
+                        scope?: undefined;
+                    })[];
+                }[];
+            }[];
         };
     };
 }
@@ -528,7 +528,7 @@ declare module "@scom/scom-area-chart/dataOptionsForm.tsx" {
 }
 /// <amd-module name="@scom/scom-area-chart" />
 declare module "@scom/scom-area-chart" {
-    import { Module, ControlElement, Container, IDataSchema, VStack } from '@ijstech/components';
+    import { Module, ControlElement, Container, IDataSchema, VStack, IUISchema } from '@ijstech/components';
     import { IAreaChartConfig } from "@scom/scom-area-chart/global/index.ts";
     interface ScomAreaChartElement extends ControlElement {
         lazyLoad?: boolean;
@@ -571,29 +571,7 @@ declare module "@scom/scom-area-chart" {
                     redo: () => void;
                 };
                 userInputDataSchema: IDataSchema;
-                userInputUISchema: {
-                    type: string;
-                    elements: ({
-                        type: string;
-                        scope: string;
-                        title: string;
-                        options?: undefined;
-                    } | {
-                        type: string;
-                        scope: string;
-                        title?: undefined;
-                        options?: undefined;
-                    } | {
-                        type: string;
-                        scope: string;
-                        options: {
-                            detail: {
-                                type: string;
-                            };
-                        };
-                        title?: undefined;
-                    })[];
-                };
+                userInputUISchema: IUISchema;
                 customUI?: undefined;
             } | {
                 name: string;
@@ -608,17 +586,6 @@ declare module "@scom/scom-area-chart" {
                 };
                 userInputDataSchema?: undefined;
                 userInputUISchema?: undefined;
-            } | {
-                name: string;
-                icon: string;
-                command: (builder: any, userInputData: any) => {
-                    execute: () => Promise<void>;
-                    undo: () => void;
-                    redo: () => void;
-                };
-                userInputDataSchema: IDataSchema;
-                userInputUISchema?: undefined;
-                customUI?: undefined;
             })[];
             getData: any;
             setData: (data: IAreaChartConfig) => Promise<void>;
@@ -638,29 +605,7 @@ declare module "@scom/scom-area-chart" {
                     redo: () => void;
                 };
                 userInputDataSchema: IDataSchema;
-                userInputUISchema: {
-                    type: string;
-                    elements: ({
-                        type: string;
-                        scope: string;
-                        title: string;
-                        options?: undefined;
-                    } | {
-                        type: string;
-                        scope: string;
-                        title?: undefined;
-                        options?: undefined;
-                    } | {
-                        type: string;
-                        scope: string;
-                        options: {
-                            detail: {
-                                type: string;
-                            };
-                        };
-                        title?: undefined;
-                    })[];
-                };
+                userInputUISchema: IUISchema;
                 customUI?: undefined;
             } | {
                 name: string;
@@ -675,17 +620,6 @@ declare module "@scom/scom-area-chart" {
                 };
                 userInputDataSchema?: undefined;
                 userInputUISchema?: undefined;
-            } | {
-                name: string;
-                icon: string;
-                command: (builder: any, userInputData: any) => {
-                    execute: () => Promise<void>;
-                    undo: () => void;
-                    redo: () => void;
-                };
-                userInputDataSchema: IDataSchema;
-                userInputUISchema?: undefined;
-                customUI?: undefined;
             })[];
             getLinkParams: () => {
                 data: string;
