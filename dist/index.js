@@ -33,10 +33,10 @@ define("@scom/scom-area-chart/global/interfaces.ts", ["require", "exports"], fun
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("@scom/scom-area-chart/global/utils.ts", ["require", "exports", "@scom/scom-chart-data-source-setup", "@ijstech/eth-wallet"], function (require, exports, scom_chart_data_source_setup_1, eth_wallet_1) {
+define("@scom/scom-area-chart/global/utils.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.callAPI = exports.concatUnique = exports.extractUniqueTimes = exports.groupByCategory = exports.groupArrayByKey = exports.formatNumberWithSeparators = exports.formatNumberByFormat = exports.formatNumber = exports.isNumeric = void 0;
+    exports.concatUnique = exports.extractUniqueTimes = exports.groupByCategory = exports.groupArrayByKey = exports.formatNumberWithSeparators = exports.formatNumberByFormat = exports.formatNumber = exports.isNumeric = void 0;
     const isNumeric = (value) => {
         if (value instanceof eth_wallet_1.BigNumber) {
             return !value.isNaN() && value.isFinite();
@@ -181,29 +181,6 @@ define("@scom/scom-area-chart/global/utils.ts", ["require", "exports", "@scom/sc
         }, {});
     };
     exports.concatUnique = concatUnique;
-    const callAPI = async (options) => {
-        if (!options.dataSource)
-            return [];
-        try {
-            let apiEndpoint = '';
-            switch (options.dataSource) {
-                case scom_chart_data_source_setup_1.DataSource.Dune:
-                    apiEndpoint = `/dune/query/${options.queryId}`;
-                    break;
-                case scom_chart_data_source_setup_1.DataSource.Custom:
-                    apiEndpoint = options.apiEndpoint;
-                    break;
-            }
-            if (!apiEndpoint)
-                return [];
-            const response = await fetch(apiEndpoint);
-            const jsonData = await response.json();
-            return jsonData.result.rows || [];
-        }
-        catch (_a) { }
-        return [];
-    };
-    exports.callAPI = callAPI;
 });
 define("@scom/scom-area-chart/global/index.ts", ["require", "exports", "@scom/scom-area-chart/global/interfaces.ts", "@scom/scom-area-chart/global/utils.ts"], function (require, exports, interfaces_1, utils_1) {
     "use strict";
@@ -301,121 +278,126 @@ define("@scom/scom-area-chart/formSchema.ts", ["require", "exports"], function (
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getEmbedderSchema = exports.getBuilderSchema = void 0;
     ///<amd-module name='@scom/scom-area-chart/formSchema.ts'/> 
-    const visualizationOptions = {
-        type: 'object',
-        title: 'Visualization Options',
-        properties: {
-            xColumn: {
-                type: 'object',
-                title: 'X column',
-                required: true,
-                properties: {
-                    key: {
-                        type: 'string',
-                        required: true
-                    },
-                    type: {
-                        type: 'string',
-                        enum: ['time', 'category'],
-                        required: true
-                    }
-                }
-            },
-            yColumns: {
-                type: 'array',
-                title: 'Y columns',
-                required: true,
-                items: {
-                    type: 'string'
-                }
-            },
-            groupBy: {
-                type: 'string'
-            },
-            smooth: {
-                type: 'boolean'
-            },
-            stacking: {
-                type: 'boolean'
-            },
-            legend: {
-                type: 'object',
-                title: 'Show Chart Legend',
-                properties: {
-                    show: {
-                        type: 'boolean'
-                    },
-                    scroll: {
-                        type: 'boolean'
-                    },
-                    position: {
-                        type: 'string',
-                        enum: ['top', 'bottom', 'left', 'right']
-                    }
-                }
-            },
-            showSymbol: {
-                type: 'boolean'
-            },
-            showDataLabels: {
-                type: 'boolean'
-            },
-            percentage: {
-                type: 'boolean'
-            },
-            xAxis: {
-                type: 'object',
-                properties: {
-                    title: {
-                        type: 'string'
-                    },
-                    tickFormat: {
-                        type: 'string'
-                    },
-                    reverseValues: {
-                        type: 'boolean'
-                    }
-                }
-            },
-            yAxis: {
-                type: 'object',
-                properties: {
-                    title: {
-                        type: 'string'
-                    },
-                    tickFormat: {
-                        type: 'string'
-                    },
-                    labelFormat: {
-                        type: 'string'
-                    },
-                    position: {
-                        type: 'string',
-                        enum: ['left', 'right']
-                    }
-                }
-            },
-            seriesOptions: {
-                type: 'array',
-                items: {
+    function visualizationOptions(columns) {
+        return {
+            type: 'object',
+            title: 'Visualization Options',
+            properties: {
+                xColumn: {
                     type: 'object',
+                    title: 'X column',
+                    required: true,
                     properties: {
                         key: {
                             type: 'string',
+                            enum: columns,
                             required: true
                         },
+                        type: {
+                            type: 'string',
+                            enum: ['time', 'category'],
+                            required: true
+                        }
+                    }
+                },
+                yColumns: {
+                    type: 'array',
+                    title: 'Y columns',
+                    required: true,
+                    items: {
+                        type: 'string',
+                        enum: columns
+                    }
+                },
+                groupBy: {
+                    type: 'string',
+                    enum: ['', ...columns]
+                },
+                smooth: {
+                    type: 'boolean'
+                },
+                stacking: {
+                    type: 'boolean'
+                },
+                legend: {
+                    type: 'object',
+                    title: 'Show Chart Legend',
+                    properties: {
+                        show: {
+                            type: 'boolean'
+                        },
+                        scroll: {
+                            type: 'boolean'
+                        },
+                        position: {
+                            type: 'string',
+                            enum: ['top', 'bottom', 'left', 'right']
+                        }
+                    }
+                },
+                showSymbol: {
+                    type: 'boolean'
+                },
+                showDataLabels: {
+                    type: 'boolean'
+                },
+                percentage: {
+                    type: 'boolean'
+                },
+                xAxis: {
+                    type: 'object',
+                    properties: {
                         title: {
                             type: 'string'
                         },
-                        color: {
+                        tickFormat: {
+                            type: 'string'
+                        },
+                        reverseValues: {
+                            type: 'boolean'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'object',
+                    properties: {
+                        title: {
+                            type: 'string'
+                        },
+                        tickFormat: {
+                            type: 'string'
+                        },
+                        labelFormat: {
+                            type: 'string'
+                        },
+                        position: {
                             type: 'string',
-                            format: 'color'
+                            enum: ['left', 'right']
+                        }
+                    }
+                },
+                seriesOptions: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            key: {
+                                type: 'string',
+                                required: true
+                            },
+                            title: {
+                                type: 'string'
+                            },
+                            color: {
+                                type: 'string',
+                                format: 'color'
+                            }
                         }
                     }
                 }
             }
-        }
-    };
+        };
+    }
     const theme = {
         darkShadow: {
             type: 'boolean'
@@ -462,7 +444,7 @@ define("@scom/scom-area-chart/formSchema.ts", ["require", "exports"], function (
             }
         ]
     };
-    function getBuilderSchema() {
+    function getBuilderSchema(columns) {
         return {
             dataSchema: {
                 type: 'object',
@@ -502,7 +484,7 @@ define("@scom/scom-area-chart/formSchema.ts", ["require", "exports"], function (
                 dataSchema: {
                     type: 'object',
                     properties: {
-                        options: visualizationOptions
+                        options: visualizationOptions(columns)
                     }
                 },
                 uiSchema: {
@@ -528,7 +510,7 @@ define("@scom/scom-area-chart/formSchema.ts", ["require", "exports"], function (
         };
     }
     exports.getBuilderSchema = getBuilderSchema;
-    function getEmbedderSchema() {
+    function getEmbedderSchema(columns) {
         return {
             dataSchema: {
                 type: 'object',
@@ -537,7 +519,7 @@ define("@scom/scom-area-chart/formSchema.ts", ["require", "exports"], function (
                         required: true
                     }, description: {
                         type: 'string'
-                    }, options: visualizationOptions }, theme)
+                    }, options: visualizationOptions(columns) }, theme)
             },
             uiSchema: {
                 type: 'Categorization',
@@ -651,17 +633,17 @@ define("@scom/scom-area-chart/dataOptionsForm.tsx", ["require", "exports", "@ijs
     ], ScomAreaChartDataOptionsForm);
     exports.default = ScomAreaChartDataOptionsForm;
 });
-define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@scom/scom-area-chart/global/index.ts", "@scom/scom-area-chart/index.css.ts", "@scom/scom-area-chart/assets.ts", "@scom/scom-area-chart/data.json.ts", "@scom/scom-chart-data-source-setup", "@scom/scom-area-chart/formSchema.ts", "@scom/scom-area-chart/dataOptionsForm.tsx"], function (require, exports, components_4, index_1, index_css_1, assets_1, data_json_1, scom_chart_data_source_setup_2, formSchema_1, dataOptionsForm_1) {
+define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@scom/scom-area-chart/global/index.ts", "@scom/scom-area-chart/index.css.ts", "@scom/scom-area-chart/assets.ts", "@scom/scom-area-chart/data.json.ts", "@scom/scom-chart-data-source-setup", "@scom/scom-area-chart/formSchema.ts", "@scom/scom-area-chart/dataOptionsForm.tsx"], function (require, exports, components_4, index_1, index_css_1, assets_1, data_json_1, scom_chart_data_source_setup_1, formSchema_1, dataOptionsForm_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_4.Styles.Theme.ThemeVars;
     const DefaultData = {
-        dataSource: scom_chart_data_source_setup_2.DataSource.Dune,
+        dataSource: scom_chart_data_source_setup_1.DataSource.Dune,
         queryId: '',
         apiEndpoint: '',
         title: '',
         options: undefined,
-        mode: scom_chart_data_source_setup_2.ModeType.LIVE
+        mode: scom_chart_data_source_setup_1.ModeType.LIVE
     };
     let ScomAreaChart = class ScomAreaChart extends components_4.Module {
         static async create(options, parent) {
@@ -671,6 +653,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
         }
         constructor(parent, options) {
             super(parent, options);
+            this.columnNames = [];
             this.chartData = [];
             this._data = DefaultData;
             this.tag = {};
@@ -698,7 +681,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             this.onUpdateBlock();
         }
         _getActions(dataSchema, uiSchema, advancedSchema) {
-            const builderSchema = (0, formSchema_1.getBuilderSchema)();
+            const builderSchema = (0, formSchema_1.getBuilderSchema)(this.columnNames);
             const actions = [
                 {
                     name: 'Edit',
@@ -782,7 +765,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     customUI: {
                         render: (data, onConfirm, onChange) => {
                             const vstack = new components_4.VStack(null, { gap: '1rem' });
-                            const dataSourceSetup = new scom_chart_data_source_setup_2.default(null, Object.assign(Object.assign({}, this._data), { chartData: JSON.stringify(this.chartData), onCustomDataChanged: async (dataSourceSetupData) => {
+                            const dataSourceSetup = new scom_chart_data_source_setup_1.default(null, Object.assign(Object.assign({}, this._data), { chartData: JSON.stringify(this.chartData), onCustomDataChanged: async (dataSourceSetupData) => {
                                     if (onChange) {
                                         onChange(true, Object.assign(Object.assign({}, this._data), dataSourceSetupData));
                                     }
@@ -813,9 +796,9 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                             }
                             button.onClick = async () => {
                                 const { dataSource, file, mode } = dataSourceSetup.data;
-                                if (mode === scom_chart_data_source_setup_2.ModeType.LIVE && !dataSource)
+                                if (mode === scom_chart_data_source_setup_1.ModeType.LIVE && !dataSource)
                                     return;
-                                if (mode === scom_chart_data_source_setup_2.ModeType.SNAPSHOT && !(file === null || file === void 0 ? void 0 : file.cid))
+                                if (mode === scom_chart_data_source_setup_1.ModeType.SNAPSHOT && !(file === null || file === void 0 ? void 0 : file.cid))
                                     return;
                                 if (onConfirm) {
                                     const optionsFormData = await dataOptionsForm.refreshFormData();
@@ -862,7 +845,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     name: 'Builder Configurator',
                     target: 'Builders',
                     getActions: () => {
-                        const builderSchema = (0, formSchema_1.getBuilderSchema)();
+                        const builderSchema = (0, formSchema_1.getBuilderSchema)(this.columnNames);
                         const dataSchema = builderSchema.dataSchema;
                         const uiSchema = builderSchema.uiSchema;
                         const advancedSchema = builderSchema.advanced.dataSchema;
@@ -880,7 +863,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     name: 'Emdedder Configurator',
                     target: 'Embedders',
                     getActions: () => {
-                        const embedderSchema = (0, formSchema_1.getEmbedderSchema)();
+                        const embedderSchema = (0, formSchema_1.getEmbedderSchema)(this.columnNames);
                         const dataSchema = embedderSchema.dataSchema;
                         const uiSchema = embedderSchema.uiSchema;
                         return this._getActions(dataSchema, uiSchema);
@@ -925,7 +908,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
         async updateChartData() {
             var _a;
             this.loadingElm.visible = true;
-            if (((_a = this._data) === null || _a === void 0 ? void 0 : _a.mode) === scom_chart_data_source_setup_2.ModeType.SNAPSHOT)
+            if (((_a = this._data) === null || _a === void 0 ? void 0 : _a.mode) === scom_chart_data_source_setup_1.ModeType.SNAPSHOT)
                 await this.renderSnapshotData();
             else
                 await this.renderLiveData();
@@ -935,9 +918,11 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             var _a;
             if ((_a = this._data.file) === null || _a === void 0 ? void 0 : _a.cid) {
                 try {
-                    const data = await (0, scom_chart_data_source_setup_2.fetchContentByCID)(this._data.file.cid);
+                    const data = await (0, scom_chart_data_source_setup_1.fetchContentByCID)(this._data.file.cid);
                     if (data) {
-                        this.chartData = data;
+                        const { metadata, rows } = data;
+                        this.chartData = rows;
+                        this.columnNames = (metadata === null || metadata === void 0 ? void 0 : metadata.column_names) || [];
                         this.onUpdateBlock();
                         return;
                     }
@@ -945,19 +930,22 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                 catch (_b) { }
             }
             this.chartData = [];
+            this.columnNames = [];
             this.onUpdateBlock();
         }
         async renderLiveData() {
             const dataSource = this._data.dataSource;
             if (dataSource) {
                 try {
-                    const data = await (0, index_1.callAPI)({
+                    const data = await (0, scom_chart_data_source_setup_1.callAPI)({
                         dataSource,
                         queryId: this._data.queryId,
                         apiEndpoint: this._data.apiEndpoint
                     });
                     if (data) {
-                        this.chartData = data;
+                        const { metadata, rows } = data;
+                        this.chartData = rows;
+                        this.columnNames = (metadata === null || metadata === void 0 ? void 0 : metadata.column_names) || [];
                         this.onUpdateBlock();
                         return;
                     }
@@ -965,6 +953,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                 catch (_a) { }
             }
             this.chartData = [];
+            this.columnNames = [];
             this.onUpdateBlock();
         }
         renderChart() {

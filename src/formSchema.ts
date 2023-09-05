@@ -1,112 +1,117 @@
-const visualizationOptions = {
-    type: 'object',
-    title: 'Visualization Options',
-    properties: {
-        xColumn: {
-            type: 'object',
-            title: 'X column',
-            required: true,
-            properties: {
-                key: {
-                    type: 'string',
-                    required: true
-                },
-                type: {
-                    type: 'string',
-                    enum: ['time', 'category'],
-                    required: true
-                }
-            }
-        },
-        yColumns: {
-            type: 'array',
-            title: 'Y columns',
-            required: true,
-            items: {
-                type: 'string'
-            }
-        },
-        groupBy: {
-            type: 'string'
-        },
-        smooth: {
-            type: 'boolean'
-        },
-        stacking: {
-            type: 'boolean'
-        },
-        legend: {
-            type: 'object',
-            title: 'Show Chart Legend',
-            properties: {
-                show: {
-                    type: 'boolean'
-                },
-                scroll: {
-                    type: 'boolean'
-                },
-                position: {
-                    type: 'string',
-                    enum: ['top', 'bottom', 'left', 'right']
-                }
-            }
-        },
-        showSymbol: {
-            type: 'boolean'
-        },
-        showDataLabels: {
-            type: 'boolean'
-        },
-        percentage: {
-            type: 'boolean'
-        },
-        xAxis: {
-            type: 'object',
-            properties: {
-                title: {
-                    type: 'string'
-                },
-                tickFormat: {
-                    type: 'string'
-                },
-                reverseValues: {
-                    type: 'boolean'
-                }
-            }
-        },
-        yAxis: {
-            type: 'object',
-            properties: {
-                title: {
-                    type: 'string'
-                },
-                tickFormat: {
-                    type: 'string'
-                },
-                labelFormat: {
-                    type: 'string'
-                },
-                position: {
-                    type: 'string',
-                    enum: ['left', 'right']
-                }
-            }
-        },
-        seriesOptions: {
-            type: 'array',
-            items: {
+function visualizationOptions(columns: string[]) {
+    return {
+        type: 'object',
+        title: 'Visualization Options',
+        properties: {
+            xColumn: {
                 type: 'object',
+                title: 'X column',
+                required: true,
                 properties: {
                     key: {
                         type: 'string',
+                        enum: columns,
                         required: true
                     },
+                    type: {
+                        type: 'string',
+                        enum: ['time', 'category'],
+                        required: true
+                    }
+                }
+            },
+            yColumns: {
+                type: 'array',
+                title: 'Y columns',
+                required: true,
+                items: {
+                    type: 'string',
+                    enum: columns
+                }
+            },
+            groupBy: {
+                type: 'string',
+                enum: ['', ...columns]
+            },
+            smooth: {
+                type: 'boolean'
+            },
+            stacking: {
+                type: 'boolean'
+            },
+            legend: {
+                type: 'object',
+                title: 'Show Chart Legend',
+                properties: {
+                    show: {
+                        type: 'boolean'
+                    },
+                    scroll: {
+                        type: 'boolean'
+                    },
+                    position: {
+                        type: 'string',
+                        enum: ['top', 'bottom', 'left', 'right']
+                    }
+                }
+            },
+            showSymbol: {
+                type: 'boolean'
+            },
+            showDataLabels: {
+                type: 'boolean'
+            },
+            percentage: {
+                type: 'boolean'
+            },
+            xAxis: {
+                type: 'object',
+                properties: {
                     title: {
                         type: 'string'
                     },
-                    color: {
+                    tickFormat: {
+                        type: 'string'
+                    },
+                    reverseValues: {
+                        type: 'boolean'
+                    }
+                }
+            },
+            yAxis: {
+                type: 'object',
+                properties: {
+                    title: {
+                        type: 'string'
+                    },
+                    tickFormat: {
+                        type: 'string'
+                    },
+                    labelFormat: {
+                        type: 'string'
+                    },
+                    position: {
                         type: 'string',
-                        format: 'color'
+                        enum: ['left', 'right']
+                    }
+                }
+            },
+            seriesOptions: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        key: {
+                            type: 'string',
+                            required: true
+                        },
+                        title: {
+                            type: 'string'
+                        },
+                        color: {
+                            type: 'string',
+                            format: 'color'
+                        }
                     }
                 }
             }
@@ -163,7 +168,7 @@ const themeUISchema = {
     ]
 }
 
-export function getBuilderSchema() {
+export function getBuilderSchema(columns: string[]) {
     return {
         dataSchema: {
             type: 'object',
@@ -207,7 +212,7 @@ export function getBuilderSchema() {
             dataSchema: {
                 type: 'object',
                 properties: {
-                    options: visualizationOptions
+                    options: visualizationOptions(columns)
                 }
             },
             uiSchema: {
@@ -233,7 +238,7 @@ export function getBuilderSchema() {
     }
 }
 
-export function getEmbedderSchema() {
+export function getEmbedderSchema(columns: string[]) {
     return {
         dataSchema: {
             type: 'object',
@@ -245,7 +250,7 @@ export function getEmbedderSchema() {
                 description: {
                     type: 'string'
                 },
-                options: visualizationOptions,
+                options: visualizationOptions(columns),
                 ...theme
             }
         },
