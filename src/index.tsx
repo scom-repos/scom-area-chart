@@ -401,7 +401,7 @@ export default class ScomAreaChart extends Module {
     this.lbDescription.caption = description;
     this.lbDescription.visible = !!description;
     this.pnlChart.height = `calc(100% - ${this.vStackInfo.offsetHeight + 10}px)`;
-    const { xColumn, yColumns, groupBy, seriesOptions, smooth, stacking, legend, showSymbol, showDataLabels, percentage, xAxis, yAxis } = options;
+    const { xColumn, yColumns, groupBy, seriesOptions, smooth, mergeDuplicateData, stacking, legend, showSymbol, showDataLabels, percentage, xAxis, yAxis } = options;
     const { key, type, timeFormat } = xColumn;
     let _legend = {
       show: legend?.show,
@@ -430,7 +430,7 @@ export default class ScomAreaChart extends Module {
       const keys = Object.keys(group);
       keys.map(v => {
         const _data = concatUnique(times, group[v]);
-        groupData[v] = groupArrayByKey(Object.keys(_data).map(m => [type === 'time' ? moment(m, timeFormat).toDate() : m, _data[m]]));
+        groupData[v] = groupArrayByKey(Object.keys(_data).map(m => [type === 'time' ? moment(m, timeFormat).toDate() : m, _data[m]]), mergeDuplicateData);
       });
       const isPercentage = percentage && groupData[keys[0]] && isNumeric(groupData[keys[0]][0][1]);
       _series = keys.map(v => {
@@ -478,7 +478,7 @@ export default class ScomAreaChart extends Module {
         if (isPercentage && !isNumeric(arr[0][col])) {
           isPercentage = false;
         }
-        groupData[col] = groupArrayByKey(arr.map(v => [type === 'time' ? moment(v[key], timeFormat).toDate() : col, v[col]]));
+        groupData[col] = groupArrayByKey(arr.map(v => [type === 'time' ? moment(v[key], timeFormat).toDate() : col, v[col]]), mergeDuplicateData);
       });
       _series = yColumns.map((col) => {
         let _data = [];
