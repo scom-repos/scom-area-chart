@@ -519,19 +519,19 @@ export default class ScomAreaChart extends Module {
         }
       });
     }
-    let min = 0, max = 0;
-    const isSingle = _series.length === 1;
-    if (isSingle) {
-      const arr = _series[0].data.filter(v => v[1] !== null).map(v => v[1]);
-      min = Math.min(...arr);
-      max = Math.max(...arr);
-      const step = (max - min) / 5;
-      min = min > step ? min - step : min;
-      max += step;
-    }
-    const minInterval = (max - min) / 4;
-    const power = Math.pow(10, Math.floor(Math.log10(minInterval)));
-    const roundedInterval = Math.ceil(minInterval / power) * power;
+    // let min = 0, max = 0;
+    // const isSingle = _series.length === 1;
+    // if (isSingle) {
+    //   const arr = _series[0].data.filter(v => v[1] !== null).map(v => v[1]);
+    //   min = Math.min(...arr);
+    //   max = Math.max(...arr);
+    //   const step = (max - min) / 5;
+    //   min = min > step ? min - step : min;
+    //   max += step;
+    // }
+    // const minInterval = (max - min) / 4;
+    // const power = Math.pow(10, Math.floor(Math.log10(minInterval)));
+    // const roundedInterval = Math.ceil(minInterval / power) * power;
     const _chartData: any = {
       tooltip: {
         trigger: 'axis',
@@ -610,12 +610,12 @@ export default class ScomAreaChart extends Module {
           color: yAxis?.fontColor
         },
         position: yAxis?.position || 'left',
-        min: isSingle ? min : undefined,
-        max: isSingle ? max : undefined,
-        interval: isSingle ? roundedInterval : undefined,
+        // min: isSingle ? min : undefined,
+        // max: isSingle ? max : undefined,
+        // interval: isSingle ? roundedInterval : undefined,
         axisLabel: {
-          showMinLabel: false,
-          showMaxLabel: false,
+          // showMinLabel: false,
+          // showMaxLabel: false,
           fontSize: 10,
           color: yAxis?.fontColor,
           position: 'end',
