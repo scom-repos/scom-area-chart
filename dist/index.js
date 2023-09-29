@@ -1219,6 +1219,9 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                     }
                 },
                 legend: _legend,
+                grid: {
+                    containLabel: true
+                },
                 xAxis: {
                     type: type,
                     boundaryGap: false,
