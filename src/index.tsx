@@ -575,6 +575,9 @@ export default class ScomAreaChart extends Module {
         }
       },
       legend: _legend,
+      grid: {
+        containLabel: true
+      },
       xAxis: {
         type: type,
         boundaryGap: false,
