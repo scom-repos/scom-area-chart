@@ -36,6 +36,12 @@ export interface IAreaChartOptions {
     scroll?: boolean,
     position?: 'top' | 'bottom' | 'left' | 'right'
   },
+  padding?: {
+    top?: number,
+    bottom?: number,
+    left?: number,
+    right?: number
+  },
   showSymbol?: boolean,
   showDataLabels?: boolean,
   percentage?: boolean
