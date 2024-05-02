@@ -13,7 +13,8 @@ import {
   LineChart,
   moment,
   Button,
-  IUISchema
+  IUISchema,
+  Modal
 } from '@ijstech/components';
 import { IAreaChartConfig, formatNumber, groupByCategory, extractUniqueTimes, concatUnique, groupArrayByKey, formatNumberByFormat, IAreaChartOptions, isNumeric } from './global/index';
 import { chartStyle, containerStyle, textStyle } from './index.css';
@@ -22,6 +23,7 @@ import configData from './data.json';
 import ScomChartDataSourceSetup, { ModeType, fetchContentByCID, callAPI, DataSource } from '@scom/scom-chart-data-source-setup';
 import { getBuilderSchema, getEmbedderSchema } from './formSchema';
 import ScomAreaChartDataOptionsForm from './dataOptionsForm';
+import types from './dts/index';
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomAreaChartElement extends ControlElement {
@@ -46,9 +48,21 @@ const DefaultData: IAreaChartConfig = {
   mode: ModeType.LIVE
 };
 
+interface ICustomWidget {
+  showConfigurator: (parent: Modal, prop: string) => void;
+  register: () => { types: string; defaultData: IAreaChartConfig };
+}
+
 @customModule
-@customElements('i-scom-area-chart')
-export default class ScomAreaChart extends Module {
+@customElements('i-scom-area-chart', {
+  icon: 'chart-area',
+  className: 'ScomAreaChart',
+  props: {
+    data: {type: 'object'}
+  },
+  events: {}
+})
+export default class ScomAreaChart extends Module implements ICustomWidget {
   private chartContainer: VStack;
   private vStackInfo: HStack;
   private pnlChart: Panel;
@@ -71,6 +85,31 @@ export default class ScomAreaChart extends Module {
   constructor(parent?: Container, options?: ScomAreaChartElement) {
     super(parent, options);
   }
+
+  showConfigurator(parent: Modal, prop: string) {
+    const props = this._getDesignPropValue('data');
+    const builderTarget = this.getConfigurators().find((conf: any) => conf.target === 'Builders');
+    const dataAction = builderTarget?.getActions().find((action: any) => action.name === prop);
+    const self = this;
+    if (dataAction) {
+      const control = dataAction.customUI.render(props, (result: boolean, data: any) => {
+        parent.visible = false;
+        self.onConfigSave(data);
+      })
+      parent.item = control;
+      parent.visible = true;
+    }
+  }
+
+  private onConfigSave(data: IAreaChartConfig) {
+    this._setDesignPropValue('data', data);
+    this.setData({...data});
+  }
+
+  register() {
+    return { types, defaultData: configData.defaultBuilderData as IAreaChartConfig };
+  }
+
 
   private getData() {
     return this._data;
@@ -652,14 +691,13 @@ export default class ScomAreaChart extends Module {
     chart.drawChart();
   }
 
-  private resizeChart() {
+  resize() {
     if (this.pnlChart) {
       (this.pnlChart.firstChild as LineChart)?.resize();
     }
   }
 
   async init() {
-    this.isReadyCallbackQueued = true;
     super.init();
     this.updateTheme();
     const { width, height, darkShadow } = this.tag || {};
@@ -675,11 +713,10 @@ export default class ScomAreaChart extends Module {
         this.setData(data);
       }
     }
-    this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
     window.addEventListener('resize', () => {
       setTimeout(() => {
-        this.resizeChart();
+        this.resize();
       }, 300);
     });
   }

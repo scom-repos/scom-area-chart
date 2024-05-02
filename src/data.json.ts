@@ -1,6 +1,7 @@
 export default {
   defaultBuilderData: {
     // apiEndpoint: "/dune/query/2030745",
+    "mode": "Live",
     "dataSource": "Dune",
     "queryId": "2030745",
     title: 'ETH Staked - Cumulative',
