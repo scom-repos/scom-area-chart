@@ -1,5 +1,6 @@
 import { Module, customModule, Container } from '@ijstech/components';
 import ScomAreaChart from '@scom/scom-area-chart';
+import { ModeType } from '@scom/scom-chart-data-source-setup';
 
 @customModule
 export default class Module1 extends Module {
@@ -16,6 +17,8 @@ export default class Module1 extends Module {
             <i-scom-area-chart
                 margin={{ left: 'auto', right: 'auto' }}
                 data={{
+                    dataSource: 'Dune',
+                    mode: ModeType.LIVE,
                     apiEndpoint: "/dune/query/2030745",
                     title: 'ETH Staked - Cumulative',
                     options: {
