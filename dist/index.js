@@ -1586,7 +1586,7 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
             };
         }
         getChartData() {
-            const { options } = this._data;
+            const { options } = this.model.getData();
             const { xColumn, yColumns, groupBy, seriesOptions, smooth, mergeDuplicateData, stacking, legend, showSymbol, showDataLabels, percentage, xAxis, yAxis, padding = {} } = options;
             const { key, type, timeFormat } = xColumn;
             let _legend = {
