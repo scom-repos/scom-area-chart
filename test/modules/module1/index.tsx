@@ -19,7 +19,7 @@ export default class Module1 extends Module {
                 data={{
                     dataSource: 'Dune',
                     mode: ModeType.LIVE,
-                    apiEndpoint: "/dune/query/2030745",
+                    queryId: '2030745',
                     title: 'ETH Staked - Cumulative',
                     options: {
                         xColumn: {

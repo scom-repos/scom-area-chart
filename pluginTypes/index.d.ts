@@ -1114,7 +1114,7 @@ declare module "@scom/scom-area-chart" {
                 };
             };
         };
-        getChartData(): {
+        getChartData(options?: IAreaChartOptions): {
             chartData: any;
             defaulBuildertData: IAreaChartConfig;
         };

@@ -14,7 +14,6 @@ define("@scom/scom-area-chart/data.json.ts", ["require", "exports"], function (r
     ///<amd-module name='@scom/scom-area-chart/data.json.ts'/> 
     exports.default = {
         defaultBuilderData: {
-            // apiEndpoint: "/dune/query/2030745",
             "mode": "Live",
             "dataSource": "Dune",
             "queryId": "2030745",
@@ -1585,8 +1584,9 @@ define("@scom/scom-area-chart", ["require", "exports", "@ijstech/components", "@
                 embededSchema: (0, formSchema_1.getEmbedderSchema)(columns)
             };
         }
-        getChartData() {
-            const { options } = this.model.getData();
+        getChartData(options) {
+            if (!options)
+                return;
             const { xColumn, yColumns, groupBy, seriesOptions, smooth, mergeDuplicateData, stacking, legend, showSymbol, showDataLabels, percentage, xAxis, yAxis, padding = {} } = options;
             const { key, type, timeFormat } = xColumn;
             let _legend = {
